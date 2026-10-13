@@ -40,7 +40,7 @@ body{padding:0!important}
 .bar{margin-left:26px}
 #pauseb{position:absolute;right:var(--sr);top:var(--st);width:calc(var(--u)*.7);height:calc(var(--u)*.7);pointer-events:auto}
 #cross{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 4px #000}
-#eye{position:absolute;left:50%;top:calc(50% - 46px);width:34px;height:34px;margin-left:-17px;opacity:0;transition:opacity .2s}
+#eye{position:y;left:50%;top:calc(50% - 46px);width:34px;height:34px;margin-left:-17px;opacity:0;transition:opacity .2s}
 #eye circle{fill:none;stroke-width:3}
 #eye .bg{stroke:rgba(255,255,255,.15)}
 #eye .arc{stroke:var(--blood);stroke-linecap:butt;transform:rotate(-90deg);transform-origin:center;stroke-dasharray:100.5;stroke-dashoffset:100.5}
@@ -67,7 +67,6 @@ body{padding:0!important}
 #bCrouch{right:calc(var(--sr) + var(--u)*2.95);bottom:calc(var(--sb) + var(--u)*.55)}
 #bLight{right:calc(var(--sr) + var(--u)*.35);bottom:calc(var(--sb) + var(--u)*2.25)}
 #bThrow{right:calc(var(--sr) + var(--u)*1.5);bottom:calc(var(--sb) + var(--u)*2.0)}
-#bHeal{right:calc(var(--sr) + var(--u)*2.65);bottom:calc(var(--sb) + var(--u)*1.85)}
 .scr{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:center;padding:var(--st) var(--sr) var(--sb) var(--sl);box-sizing:border-box;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(4,6,7,.55) 62%,rgba(4,6,7,.15))}
 .scr.solid{background:rgba(4,6,7,.93)}
 .scr[hidden]{display:none}
@@ -157,8 +156,6 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #act #bInt{grid-area:use;width:calc(var(--u)*1.5);height:calc(var(--u)*1.5);border-radius:50%;border-color:rgba(232,169,58,.5);background:rgba(18,16,10,.6)}
 #act #bInt svg{width:34%;height:34%}#act #bInt i{color:var(--amber);font-size:10px}
 #act #bInt.ready{background:rgba(232,169,58,.38);border-color:var(--amber);color:var(--amber)}
-#act #bHeal{position:absolute;grid-area:auto;right:calc(var(--u)*.3);bottom:calc(100% + 10px);width:calc(var(--u)*.92);height:calc(var(--u)*.92);border-color:rgba(214,64,58,.55);color:#ff8b82}
-#act #bHeal i{color:#ff8b82}
 #stick{border-color:rgba(221,227,218,.22)}
 /* menus */
 .mb{border-radius:3px;min-height:44px;display:flex;align-items:center;letter-spacing:.14em}
@@ -254,7 +251,13 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .mb,.b,.seg button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .seg button{min-height:40px}
 #act .b{min-width:48px;min-height:48px}
+#how .mb.sec,#settings .mb.sec,#lobby #lBack{width:min(200px,60vw)!important}
+#lobby .card.col{flex:1 1 260px;max-width:min(320px,92vw)}
+.set{grid-template-columns:minmax(96px,140px) minmax(0,1fr)}
+.seg button{white-space:nowrap}
+#lobby h2,#how h2,#settings h2{margin-top:0}
 </style>
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
 <div id="app">
@@ -282,7 +285,6 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="b" id="bInt" aria-label="Interact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><i>Use</i></button>
     <button class="b" id="bCrouch" aria-label="Crouch"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6M6 18h12"/></svg><i>Crouch</i></button>
     <button class="b" id="bRun" aria-label="Sprint"><svg viewBox="0 0 24 24"><circle cx="15" cy="4.6" r="1.7"/><path d="M13.5 7.5l-2 6M13.2 8.8l3.3 1.7 2-1M12.8 9l-2.8.8-2 2.3M11.5 13.5l3.5 2-.5 4M11.5 13.5l-2.5 3.5-3.5 1.5"/></svg><i>Sprint</i></button>
-    <button class="b" id="bHeal" aria-label="Use bandage" hidden><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><i>Heal</i><em id="cHeal">0</em></button>
   </div>
 </div>
 
@@ -303,7 +305,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 <div class="scr solid" id="how" hidden>
   <h2>How to play</h2>
   <div class="row">
-    <div class="card"><p><b>Goal.</b> Find 4 fuses and a fuel can, bring them to the generator shed, start it, then run out through the gate. Follow the arrow and the green beam. Crank the gate to open it faster, but cranking is loud. Carrying supplies slows you and makes you easier to notice.</p><p><b>The Floorbound</b> hunts by sight and sound. One touch and you are dead. Running, doors and the generator are loud. Crouching is quiet. Your flashlight shows you the way and shows you to it.</p><p><b>Hide</b> in lockers when it loses sight of you. Throw bottles to pull it away. Close doors to slow it. The NSE bar shows how loud you are. Once per run, after the second fuse, the Floorbound hunts you for about half a minute. Hide in a locker to break it. Beware: some survivors are not real. Real teammates show on your map. Hold your flashlight on a fake for two seconds to expose it.</p></div>
+    <div class="card"><p><b>Goal.</b> Find 4 fuses and a fuel can, bring them to the generator shed, start it, then run out through the gate. Follow the arrow and the green beam. Crank the gate to open it faster, but cranking is loud. Carrying supplies slows you and makes you easier to notice.</p><p><b>The Floorbound</b> hunts by sight and sound. One touch and you are dead. Running, doors and the generator are loud. Crouching is quiet. Your flashlight shows you the way and shows you to it, but holding its beam on a chasing Floorbound makes it recoil for a moment. That costs battery and needs about 7 seconds to recharge.</p><p><b>Hide</b> in lockers when it loses sight of you. Throw bottles to pull it away. Close doors to slow it. The NSE bar shows how loud you are. Once per run, after the second fuse, the Floorbound hunts you for about half a minute. Hide in a locker to break it. Beware: some survivors are not real. Real teammates show on your map. Hold your flashlight on a fake for two seconds to expose it.</p></div>
     <div class="card"><p><b>Touch.</b> Left thumb moves (hold or tap the sprint button, or push the stick past its ring, to run). Right thumb looks. Tap USE near glowing objects.</p><p><b>Keyboard.</b> WASD move, Shift run, C crouch, F light, E use, Q throw, mouse drag to look, Esc pause.</p></div>
   </div>
   <div style="margin-top:12px"><button class="mb sec" style="width:200px" id="howBack">Back</button></div>
@@ -324,7 +326,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 </div>
 
 <div class="scr solid" id="lobby" hidden>
-  <div class="row" style="align-items:center;gap:12px"><button class="mb sec" id="lBack2" style="width:auto;padding:6px 14px">&#8249; Back</button><h2 style="margin:0">Co-op lobby</h2></div>
+  <h2>Co-op lobby</h2>
   <div class="row" style="margin-top:6px">
     <div class="card col" id="lCardA" style="width:min(300px,86vw)">
       <div class="lbl">Host a run</div>
@@ -339,7 +341,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
       <div class="note" id="lMsg">Host a room or join one with a 4 letter code.</div>
     </div>
   </div>
-  <div class="note" style="margin-top:8px">Up to 4 players on any device. Share the code and your friends enter it under Join. They open this same page, so they need access to it.</div>
+  <div class="note" style="margin-top:8px">Up to 4 players. Share the code; friends open the game, tap Co-op, then Join, and enter it. Everyone needs a connection to find each other.</div>
   <div style="margin-top:10px"><button class="mb sec" style="width:200px" id="lBack">Back</button></div>
 </div>
 
@@ -887,14 +889,11 @@ function buildPickupMesh(kind){
     const b=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.17,12),new THREE.MeshStandardMaterial({color:0x3f8f4a,roughness:.4,metalness:.4,emissive:0x0b3a12,emissiveIntensity:.8}));
     const t=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,.03,8),new THREE.MeshStandardMaterial({color:0xcfd4d6,metalness:.9,roughness:.3}));t.position.y=.1;
     const s=new THREE.Mesh(new THREE.CylinderGeometry(.052,.052,.03,12),new THREE.MeshBasicMaterial({color:0xd8ff9a}));s.position.y=.02;g.add(b,t,s);
-  }else if(kind==='bandage'){
-    const b=new THREE.Mesh(new THREE.BoxGeometry(.2,.07,.14),new THREE.MeshStandardMaterial({color:0xe8e4da,roughness:.8,emissive:0x2a2a28}));
-    const r1=new THREE.Mesh(new THREE.BoxGeometry(.1,.075,.03),new THREE.MeshBasicMaterial({color:0xc01820})),r2=new THREE.Mesh(new THREE.BoxGeometry(.03,.075,.1),r1.material);g.add(b,r1,r2);
   }else{
     const mt=new THREE.MeshStandardMaterial({color:0x5c8a58,transparent:true,opacity:.7,roughness:.08,metalness:.2,emissive:0x0d2a10});
     const b=new THREE.Mesh(new THREE.CylinderGeometry(.045,.05,.17,10),mt),n=new THREE.Mesh(new THREE.CylinderGeometry(.018,.03,.1,8),mt);n.position.y=.13;g.add(b,n);
   }
-  const col={fuse:0xffa733,battery:0x9dff7a,bandage:0xff6a5a,bottle:0x8fe08c,fuel:0xff4a3a}[kind];
+  const col={fuse:0xffa733,battery:0x9dff7a,bottle:0x8fe08c,fuel:0xff4a3a}[kind];
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:TX.glow,color:col,transparent:true,opacity:(kind==='fuse'||kind==='fuel')?.7:.4,depthWrite:false,blending:THREE.AdditiveBlending}));
   sp.scale.setScalar((kind==='fuse'||kind==='fuel')?1.1:.7);g.add(sp);g.userData.glow=sp;
   g.traverse(o=>{if(o.isMesh)o.castShadow=false});
@@ -1726,7 +1725,7 @@ function crUpdate(dt,gt){
 /* ============ game state, players, interaction ============ */
 const G={running:false,paused:false,t:0,seed:1,placed:0,genOn:false,genMine:false,power:false,powerT:0,over:false,stats:{t:0,hits:0,hide:0},sayT:0,noiseT:0};
 const me={id:0,name:'You',x:0,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,stamDelay:0,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,
-  fuses:0,bottles:2,bands:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,bob:0,stepD:0,kick:0,kickT:0,shake:0,thr:0,hide:{yaw:0}};
+  fuses:0,bottles:2,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,bob:0,stepD:0,kick:0,kickT:0,shake:0,thr:0,hide:{yaw:0}};
 const peers={};
 /* jump scares: rare, only fired while the Floorbound is not hunting, never more than twice a run */
 const SC={q:null,t:null,n:0,dark:false,face:false};
@@ -1889,6 +1888,7 @@ function netEvent(m){
     case'drop':(m.ids||[]).forEach(dropFuse);break;
     case'door':setDoor(m.i,m.o,false);break;
     case'lock':setLocker(m.i,m.o,false);break;
+    case'beam':if(net.role==='host')Cr.stall=Math.max(Cr.stall||0,1.5);break;
     case'occ':WLD.lockers[m.i].occ=m.id;break;
     case'ins':G.placed++;storyBeat();genVisual();AU.insert(WLD.gen.x,WLD.gen.z);objective();break;
     case'gen':if(!G.genOn)startGen(false);break;
@@ -1921,7 +1921,7 @@ function newRun(seed,plist){
   genVisual();
   HUNT.on=false;HUNT.done=false;HUNT.t=0;HUNT.pre=0;miReset();
   crReset();Cr.nx=Cr.x;Cr.nz=Cr.z;Cr.nh=Cr.h;Cr.first=undefined;
-  Object.assign(me,{x:-1.5+(me.id%4)*1.1,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,fuses:0,fuel:0,inv:0,adr:0,ns:0,bottles:2,bands:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,kick:0,shake:0,grabbed:false,held:[]});
+  Object.assign(me,{x:-1.5+(me.id%4)*1.1,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,fuses:0,fuel:0,inv:0,adr:0,ns:0,bottles:2,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,kick:0,shake:0,grabbed:false,held:[]});
   for(const k in peers)killPeer(k);
   for(const b of PR){scene.remove(b.mesh)}PR.length=0;
   $('bLight').classList.add('on');$('bRun').classList.remove('on');$('bCrouch').classList.remove('on');
@@ -1957,7 +1957,7 @@ function takePickup(id,mine){
   if(mine){
     if(p.kind==='fuel'){me.fuel++;me.held.push(id);say('Fuel can. Heavy. Take it to the generator shed.',3500)}else if(p.kind==='fuse'){me.fuses++;me.held.push(id);if(G.placed+me.fuses===2)queueScare(2.4);say('Fuse collected. '+(G.placed+me.fuses<4?'Find the rest.':'Take them to the generator shed.'),3500)}
     else if(p.kind==='battery'){me.bat=Math.min(100,me.bat+60);say('Fresh battery.',2200)}
-    else if(p.kind==='bandage'){me.bands++;say('Bandage.',2000)}
+    
     else{me.bottles++;say('Bottle. Throw it to pull the Floorbound away.',2800)}
     AU.pickup();buzz(18);objective();net.ev({k:'pick',id});
   }
@@ -2042,9 +2042,6 @@ function updateBottles(dt){
     b.x=nx;b.y=ny;b.z=nz;b.mesh.position.set(nx,ny,nz);b.mesh.rotation.x+=dt*9;b.mesh.rotation.z+=dt*6;
   }
 }
-function heal(){
-  if(!me.alive||me.bands<=0||me.hp>=100||G.paused)return;me.bands--;me.hp=Math.min(100,me.hp+45);AU.tone({f0:520,f1:780,dur:.3,g:.05});AU.noise({dur:.4,g:.05,f:1800,q:.6});me.kick=1;me.kickT=0;buzz(20);
-}
 function toggleLight(){if(!me.alive||G.paused)return;if(me.hidden>=0)return;me.light=!me.light;if(me.bat<=0)me.light=false;AU.click();$('bLight').classList.toggle('on',me.light)}
 function toggleCrouch(){me.crouch=!me.crouch;$('bCrouch').classList.toggle('on',me.crouch);AU.click()}
 function toggleRun(){me.latch=!me.latch;$('bRun').classList.toggle('on',me.latch);AU.click()}
@@ -2057,7 +2054,7 @@ function findInteract(){
     const sc=d-dot*.8;if(sc<best){best=sc;IT={label,fn,x,z}}
   };
   if(me.hidden>=0){IT={label:'Leave hiding spot',fn:()=>leaveLocker()};return}
-  for(const p of WLD.pickups){if(!p.active)continue;const nm={fuel:'Take fuel can',fuse:'Take fuse',battery:'Take battery',bandage:'Take bandage',bottle:'Take bottle'}[p.kind];cand(p.x,p.z,2.1,nm,()=>takePickup(p.id,true))}
+  for(const p of WLD.pickups){if(!p.active)continue;const nm={fuel:'Take fuel can',fuse:'Take fuse',battery:'Take battery',bottle:'Take bottle'}[p.kind];cand(p.x,p.z,2.1,nm,()=>takePickup(p.id,true))}
   WLD.doors.forEach((d,i)=>cand(d.x,d.z,2.2,d.open?'Close door':'Open door',()=>{setDoor(i,!d.open,true);emitNoise(d.x,d.z,7)},.2));
   WLD.lockers.forEach((L,i)=>{if(L.occ>=0||L.target>0)return;cand(L.outX,L.outZ,1.7,L.dump?'Hide in dumpster':'Hide in locker',()=>enterLocker(i),-1)});
   if(G.power&&WLD.gate.open<.8)cand(0,38.4,3.4,'Crank the gate',crankGate,-1);
@@ -2116,6 +2113,12 @@ function updatePlayer(dt){
   if(sprint&&me.sp>3){me.stam=Math.max(0,me.stam-21*dt*(me.adr>0?0:G.power?.55:1));me.stamDelay=.8}else{me.stamDelay=Math.max(0,me.stamDelay-dt);if(me.stamDelay<=0)me.stam=Math.min(100,me.stam+(me.exh?11:18)*dt)}
   // battery
   if(me.light){me.bat=Math.max(0,me.bat-dt*.36);if(me.bat<=0){me.light=false;$('bLight').classList.remove('on');say('Flashlight battery is dead.',2500)}}
+  // beam: holding the light on a hunting Floorbound makes it recoil for a moment (costs battery, then recharges)
+  me.beamCd=Math.max(0,(me.beamCd||0)-dt);
+  if(me.light&&me.hidden<0&&me.beamCd<=0&&Cr.state==='chase'){const bx=Cr.x-me.x,bz=Cr.z-me.z,bd=Math.hypot(bx,bz);
+    if(bd>1.5&&bd<13&&(-bx*Math.sin(me.yaw)-bz*Math.cos(me.yaw))/bd>.93&&losClear(me.x,me.z,Cr.x,Cr.z,1.2)){
+      me.beamCd=7;me.bat=Math.max(0,me.bat-7);if(net.role==='client')net.ev({k:'beam'});else Cr.stall=Math.max(Cr.stall||0,1.5);
+      AU.noise({dur:.5,g:.12,f:2600,q:2.2,sweep:900});buzz(25);say('It recoils from the light.',1800)}}
   // eye height + bob + steps
   const eyeT=me.crouch?1.0:1.62;me.eye=lerp(me.eye,eyeT,1-Math.exp(-dt*9));
   me.bob+=me.sp*dt*(sprint?2.2:1.8);
@@ -2274,7 +2277,7 @@ function hud(dt){
   ss('stb','transform','scaleX('+clamp(me.stam/100,0,1).toFixed(2)+')');ss('btb','transform','scaleX('+clamp(me.bat/100,0,1).toFixed(2)+')');
   const txt=IT?IT.label:'';if(txt!==lastPrompt){lastPrompt=txt;const p=$('prompt');p.textContent=txt;p.classList.toggle('on',!!txt)}$('bInt').classList.toggle('ready',!!IT);
   const th=$('bThrow');if(th.hidden!==(me.bottles<=0))th.hidden=me.bottles<=0;if($('cThrow').textContent!=me.bottles)$('cThrow').textContent=me.bottles;
-  const hb=$('bHeal');hb.hidden=!(me.bands>0&&me.hp<100);$('cHeal').textContent=me.bands;
+  
   let aw=0;if(me.alive&&Cr.tgt===me.id)aw=clamp(Cr.aware,0,1);if((Cr.state==='chase'||Cr.state==='attack')&&Cr.tgt===me.id)aw=1;
   ss('eye','opacity',aw>.05?'1':'0');ss('eyearc','strokeDashoffset',(100.5*(1-aw)).toFixed(1));
   ss('vitals','opacity',me.hp>=99&&me.stam>=96&&me.bat>25&&me.alive?'.4':'1');ss('vig','opacity',clamp(.58+me.thr*.3+DR.d*.0012+(me.hp<40?.15:0),0,1).toFixed(2));
@@ -2389,13 +2392,13 @@ function bindInput(){
   press('bInt',doInteract);{const rb=$('bRun');let t0=0,hold=false;
     rb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();AU.resume();buzz(8);AU.click();if(me.latch){me.latch=false;rb.classList.remove('on');hold=false}else{me.latch=true;rb.classList.add('on');t0=performance.now();hold=true}});
     const rel=()=>{if(hold&&performance.now()-t0>260){me.latch=false;rb.classList.remove('on')}hold=false};
-    rb.addEventListener('pointerup',rel);rb.addEventListener('pointercancel',rel);rb.addEventListener('pointerleave',rel);rb.addEventListener('contextmenu',e=>e.preventDefault())}press('bCrouch',toggleCrouch);press('bLight',toggleLight);press('bThrow',throwBottle);press('bHeal',heal);press('pauseb',()=>setPaused(true));
+    rb.addEventListener('pointerup',rel);rb.addEventListener('pointercancel',rel);rb.addEventListener('pointerleave',rel);rb.addEventListener('contextmenu',e=>e.preventDefault())}press('bCrouch',toggleCrouch);press('bLight',toggleLight);press('bThrow',throwBottle);press('pauseb',()=>setPaused(true));
   addEventListener('keydown',e=>{
     if(e.repeat&&e.code!=='KeyW')return;IN.keys[e.code]=true;
     if(!G.running||G.over)return;
     if(e.code==='Escape'){setPaused(!G.paused);return}
     if(G.paused)return;
-    if(e.code==='KeyC')toggleCrouch();else if(e.code==='KeyF')toggleLight();else if(e.code==='KeyE')doInteract();else if(e.code==='KeyQ')throwBottle();else if(e.code==='KeyH')heal();
+    if(e.code==='KeyC')toggleCrouch();else if(e.code==='KeyF')toggleLight();else if(e.code==='KeyE')doInteract();else if(e.code==='KeyQ')throwBottle();
     if(['Space','ArrowUp','ArrowDown','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault();
   });
   addEventListener('keyup',e=>{IN.keys[e.code]=false});
@@ -2413,7 +2416,7 @@ function bindInput(){
   clk('howBack',()=>show('menu'));clk('setBack',()=>{if(G.running&&G.paused)show('pause');else show('menu')});
   clk('pResume',()=>setPaused(false));clk('pSet',()=>{syncSettings();show('settings')});clk('pQuit',quitToMenu);
   clk('eRetry',startSolo);clk('eMenu',quitToMenu);clk('spPrev',()=>specCycle(-1));clk('spNext',()=>specCycle(1));clk('spLeave',endSpectate);
-  clk('lBack',()=>{net.close();show('menu')});clk('lBack2',()=>{net.close();show('menu')});
+  clk('lBack',()=>{net.close();show('menu')});
   const roomErr=r=>r==='unavail'?'Co-op needs a connection. Connect to the internet and try again.':'Could not open the room. Check your connection and try again.';
   clk('lHost',async()=>{
     $('lMsg').textContent='Creating room…';
@@ -2491,5 +2494,19 @@ boot();
 
 </script>
 
+<script>
+/* offline + install support (only on a normal web host such as GitHub Pages) */
+(function(){try{
+  if(!/^https?:$/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.hostname))return;
+  if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  let dp=null;const b=document.createElement('button');
+  b.textContent='Install app';b.hidden=true;
+  b.style.cssText='position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:99;padding:10px 16px;min-height:44px;border:1px solid #8a6d2f;border-radius:10px;background:rgba(10,8,4,.85);color:#e8d9a8;font:600 15px "Barlow Condensed",system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase';
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;if(!matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches)b.hidden=false});
+  b.onclick=async()=>{if(!dp)return;b.hidden=true;dp.prompt();try{await dp.userChoice}catch(e){}dp=null};
+  addEventListener('appinstalled',()=>{b.hidden=true});
+  document.body.appendChild(b);
+}catch(e){}})();
+</script>
 </body>
 </html>
