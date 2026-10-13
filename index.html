@@ -421,6 +421,76 @@ h2{letter-spacing:.04em}
 #bmX{border:0;border-radius:50%;background:rgba(255,255,255,.08)}
 #bm{border-top:0}
 .bml{display:none}
+
+/* ---- v15 opening screen + co-op lobby ---- */
+#menu{padding-left:max(var(--sl),4vw);background:linear-gradient(90deg,rgba(3,5,6,.94),rgba(3,5,6,.62) 48%,rgba(3,5,6,0) 82%)}
+#menu .tag{margin:8px 0 12px;font-size:clamp(10px,2.4vmin,13px);letter-spacing:.18em}
+#mStats{margin:0 0 16px}
+#menu .menu{width:min(340px,58vw);gap:9px}
+.mb.pri,.mb.duo{position:relative;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;padding-right:44px}
+.mb small{font-size:clamp(10px,2.5vmin,12px);font-weight:500;letter-spacing:.06em;text-transform:none;opacity:.72}
+.mb.pri::after,.mb.duo::after{content:'\203A';position:absolute;right:16px;top:50%;transform:translateY(-54%);font-size:28px;line-height:1;opacity:.75}
+.mb.duo{border-color:rgba(232,169,58,.35)}
+.mb.duo:hover,.mb.duo:active{background:rgba(232,169,58,.14)}
+#menu .row3{margin-top:4px}
+#menu .row3 .mb{min-height:40px;border-radius:10px}
+/* lobby: one clear step at a time */
+#lobby{padding-top:max(var(--st),12px);background:radial-gradient(ellipse at 30% 20%,rgba(20,26,28,.97),rgba(4,6,7,.99))}
+#lobby .lhead{width:100%;max-width:920px;margin-bottom:10px}
+#lobby .lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px;width:100%;max-width:920px;margin:0}
+#lobby .lgrid .card.col{flex:none;max-width:none;padding:14px 16px;gap:10px}
+#lobby .lbl{color:var(--dim)}
+#lName{border-radius:10px;font-size:clamp(16px,4vmin,20px)}
+#lCode{border-radius:10px;width:6.5ch}
+#lCode:placeholder-shown+#lJoin{opacity:.55}
+#lobby .mb.pri{min-height:50px;justify-content:center;align-items:center;text-align:center;padding-right:16px}
+#lobby .mb.pri::after{display:none}
+#lRoom{display:block;text-align:center;font-size:clamp(34px,10vmin,46px);letter-spacing:.3em;padding:6px 0 6px .3em;background:rgba(0,0,0,.35);border:1px dashed rgba(232,169,58,.4);border-radius:10px;cursor:pointer}
+.plist{margin-top:4px}
+.plist li{border:0;border-radius:10px;background:rgba(255,255,255,.05);padding:8px 12px;margin-bottom:5px;font-size:clamp(14px,3.3vmin,16px)}
+.plist li.me{background:rgba(232,169,58,.12)}
+.plist li.open{background:transparent;border:1px dashed var(--glass-b);color:var(--dim);font-size:13px;opacity:.7}
+#lMsg{font-size:clamp(12px,3vmin,14px)}
+#lStart{min-height:54px;font-size:clamp(17px,4.4vmin,22px)}
+.dgrid button{border-radius:10px;border:1px solid var(--glass-b);border-left:1px solid var(--glass-b);background:rgba(255,255,255,.04)}
+.dgrid button.on{background:rgba(194,86,43,.18);border-color:var(--rust)}
+#lobby:not(.inroom) #lCardB>*:not(#lMsg){display:none}
+#lobby:not(.inroom) #lCardB{background:none;border:0;padding:4px 2px}
+.lfoot{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:12px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.lfoot span+span::before{content:'\00b7';margin-right:14px}
+#lobby #lBack{border-radius:999px;min-height:40px}
+/* centered layout for the opening screen and the lobby */
+#menu{align-items:center;text-align:center;padding-left:var(--sl);background:radial-gradient(ellipse at center,rgba(3,5,6,.55),rgba(3,5,6,.9) 85%)}
+#menu .brand{justify-content:center}
+#menu #mStats{justify-content:center}
+#menu .menu{width:min(340px,72vw)}
+.mb.pri,.mb.duo{align-items:center;text-align:center;padding-left:44px}
+#menu .foot{left:0;right:0;text-align:center}
+#lobby{align-items:center}
+#lobby .lhead,#lobby .lfoot{justify-content:center}
+#lobby h2{text-align:center}
+#lobby .lgrid{justify-items:stretch}
+
+/* ---- v16 lobby redesign: header bar, two panes, clear room card ---- */
+#lobby #lBack{width:auto!important;min-width:104px;flex:none;border-radius:999px;min-height:38px}
+#lobby .lhead{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:center;gap:10px;padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid var(--glass-b)}
+#lobby .lhead h2{flex:1;margin:0;text-align:center;font-size:clamp(20px,6vmin,30px)}
+#lState{flex:none;min-width:104px;text-align:center;padding:6px 12px}
+.chip::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:8px;vertical-align:1px}
+.chip.busy::before{animation:pulse 1s infinite}
+@media (min-width:600px){#lobby .lgrid{grid-template-columns:1.15fr 1fr}}
+#lobby:not(.inroom) #lCardC{order:2}
+#lobby:not(.inroom) #lCardB{order:3;grid-column:1/-1;text-align:center}
+#lobby .lgrid .card.col{background:rgba(255,255,255,.04);border:1px solid var(--glass-b);border-radius:16px}
+#lobby .lbl{font-size:10px;letter-spacing:.26em}
+#lName{background:rgba(0,0,0,.4);border-radius:999px;padding:9px 16px}
+#lCode{text-align:center}
+#lCardB #lRoom{padding:8px 0 6px .3em}
+#lRoom::after{content:'Tap to copy';display:block;font-family:var(--fu);font-size:10px;letter-spacing:.24em;color:var(--dim);margin-top:2px;text-transform:uppercase}
+#lStart{background:linear-gradient(180deg,#d1632f,#b34a22);box-shadow:0 4px 18px rgba(194,86,43,.35)}
+.dgrid button{padding:9px 12px}
+.lfoot{margin-top:14px;opacity:.75}
+@media (max-height:420px){#lobby .lhead{margin-bottom:8px;padding-bottom:8px}#lobby .lgrid .card.col{padding:10px 12px;gap:7px}#lRoom{font-size:30px}.plist li{padding:5px 10px;margin-bottom:3px}#lStart{min-height:44px}.lfoot{display:none}}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 </head>
@@ -466,8 +536,8 @@ h2{letter-spacing:.04em}
   <div class="tag">It is not on the walls. It is on the floor.</div>
   <div class="note" id="mStats"></div>
   <div class="menu">
-    <button class="mb pri" id="mSolo">Play solo</button>
-    <button class="mb" id="mCoop">Co-op</button>
+    <button class="mb pri" id="mSolo"><span>Play solo</span><small>Find the fuses. Get out.</small></button>
+    <button class="mb duo" id="mCoop"><span>Co-op</span><small>2 to 4 players &middot; join with a code</small></button>
     <div class="row3"><button class="mb sec" id="mHow">Guide</button><button class="mb sec" id="mSet">Settings</button><button class="mb sec" id="mFull">Full</button></div>
   </div>
   <div class="foot">Best with headphones &middot; Hollowgate</div>
@@ -497,7 +567,7 @@ h2{letter-spacing:.04em}
 </div>
 
 <div class="scr solid" id="lobby" hidden>
-  <div class="lhead"><h2>Co-op lobby</h2><span class="chip" id="lState">Not connected</span></div>
+  <div class="lhead"><button class="mb sec sm" id="lBack">Back</button><h2>Co-op lobby</h2><span class="chip" id="lState">Not connected</span></div>
   <div class="lgrid">
     <div class="card col" id="lCardA">
       <div class="lbl">Your name</div>
@@ -525,8 +595,7 @@ h2{letter-spacing:.04em}
       <div class="note" id="lDiffNote"></div>
     </div>
   </div>
-  <div class="note" style="margin-top:8px">Up to 4 players. Friends tap Co-op, then enter the code. The code keeps working after the run starts, so they can drop in late. The host sets the difficulty for everyone.</div>
-  <div style="margin-top:10px"><button class="mb sec" style="width:200px" id="lBack">Back</button></div>
+  <div class="lfoot"><span>Up to 4 players</span><span>Friends can join any time with the code</span><span>Host sets the difficulty</span></div>
 </div>
 
 <div class="scr solid" id="pause" hidden>
@@ -2079,7 +2148,7 @@ function lobbyUI(){
   fillPlayers($('lPlayers'));fillPlayers($('pPlayers'));
   const ids=Object.keys(net.players);
   $('lCount').textContent=net.room?'· '+ids.length+'/4':'';$('pRoom').hidden=!net.room;$('pCode').textContent=net.room?net.room.toUpperCase():'—';
-  $('lRoom').textContent=net.room?net.room.toUpperCase():'—';$('lStart').hidden=net.role!=='host';$('lCardA').hidden=!!net.room&&net.role!=='joining';
+  $('lRoom').textContent=net.room?net.room.toUpperCase():'—';$('lobby').classList.toggle('inroom',!!net.room);$('lStart').hidden=net.role!=='host';$('lCardA').hidden=!!net.room&&net.role!=='joining';
   {const cl=net.role==='client',d=(cl&&net.diff)||settings.diff,N={easy:'Slower Floorbound with shorter senses.',norm:'Balanced speed and senses.',hard:'Faster Floorbound with sharper senses.'};
    for(const b of $('lDiff').children)b.classList.toggle('on',b.dataset.v===d);$('lDiff').classList.toggle('ro',cl);
    $('lDiffNote').textContent=(N[d]||'')+(cl?' Locked by the host.':'');$('lDiffWho').textContent=cl?'· host':'';
@@ -2977,6 +3046,8 @@ boot();
   addEventListener('appinstalled',()=>{b.hidden=true});
   document.body.appendChild(b);
 }catch(e){}})();
+/* tap the big room code to copy it */
+(function(){var r=document.getElementById('lRoom');if(r)r.addEventListener('click',function(){var c=document.getElementById('lCopy');if(c&&!c.hidden)c.click()})})();
 </script>
 </body>
 </html>
