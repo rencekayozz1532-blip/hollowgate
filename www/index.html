@@ -18,7 +18,7 @@ body{padding:0!important}
 #gl,#grain{position:absolute;inset:0;width:100%;height:100%;display:block}
 #grain{pointer-events:none;opacity:.015;image-rendering:pixelated}
 #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 38%,rgba(0,0,0,.5) 100%);opacity:.6}
-#slats{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;background:repeating-linear-gradient(0deg,rgba(0,0,0,.95) 0 16px,rgba(0,0,0,0) 16px 24px)}
+#slats{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;background:repeating-linear-gradient(0deg,rgba(0,0,0,.82) 0 3px,rgba(0,0,0,0) 3px 22px);box-shadow:inset 0 0 9vmin rgba(0,0,0,.7)}
 #hurt{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(120,0,0,0) 25%,rgba(150,0,6,.85) 100%);opacity:0}
 #scare{position:absolute;inset:0;z-index:5;pointer-events:none;background:#000;display:none;align-items:center;justify-content:center;overflow:hidden}#scare.on{display:none}#scare svg{height:125%;animation:lunge .34s cubic-bezier(.2,.8,.3,1) forwards}@keyframes lunge{from{transform:scale(.62)}to{transform:scale(1.3)}}
 #flash{position:absolute;inset:0;z-index:7;pointer-events:none;background:#000;opacity:0}
@@ -257,6 +257,31 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .seg button{white-space:nowrap}
 #lobby h2,#how h2,#settings h2{margin-top:0}
 button[hidden]{display:none!important}
+#chatBtn{position:absolute;right:calc(var(--sr) + var(--u)*.95);top:var(--st);width:calc(var(--u)*.7);height:calc(var(--u)*.7);border-radius:50%;z-index:12;display:flex;align-items:center;justify-content:center;background:var(--glass);border:1px solid var(--glass-b);color:var(--ink);padding:0;pointer-events:auto;touch-action:none}
+#chatBtn[hidden]{display:none}
+#chatBtn svg{width:48%;height:48%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+#chatDot{position:absolute;top:3px;right:3px;width:10px;height:10px;border-radius:50%;background:var(--rust)}
+#chatDot[hidden]{display:none}
+#chatLog{position:absolute;left:var(--sl);bottom:calc(var(--sb) + var(--u)*3.2);max-width:min(46vw,380px);z-index:11;pointer-events:none;display:flex;flex-direction:column;gap:3px}
+#chatLog div{background:rgba(5,8,9,.64);border-left:2px solid var(--rust);padding:3px 8px;font:600 clamp(12px,3vmin,15px)/1.2 var(--fu);letter-spacing:.04em;color:var(--ink);text-shadow:0 1px 2px #000;word-break:break-word;transition:opacity .6s;animation:chIn .2s ease-out}
+#chatLog div b{color:var(--amber);margin-right:6px;font-weight:700}
+#chatLog div.old{opacity:0}
+@keyframes chIn{from{opacity:0;transform:translateY(6px)}}
+#chatPanel{position:absolute;left:50%;transform:translateX(-50%);bottom:var(--sb);width:min(96vw,640px);z-index:13;padding:6px;box-sizing:border-box;background:rgba(6,9,10,.92);border:1px solid var(--glass-b);border-radius:10px;display:flex;flex-direction:column;gap:4px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#chatPanel[hidden]{display:none}
+#chatQuick{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+#chatQuick button{flex:0 0 auto;padding:0 10px}
+#chatIn{min-height:30px;display:flex;align-items:center;padding:0 10px;background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:5px;font:600 clamp(14px,3.6vmin,18px) var(--fu);letter-spacing:.05em;color:var(--ink);overflow:hidden;white-space:nowrap}
+#chatTxt{overflow:hidden;text-overflow:clip}
+#chatIn i{width:2px;height:1.1em;background:var(--amber);margin-left:2px;animation:chBlink 1s steps(1) infinite}
+@keyframes chBlink{50%{opacity:0}}
+.kr{display:flex;gap:4px}
+#chatPanel button{flex:1;min-width:0;height:clamp(26px,calc(var(--u)*.52),34px);font:600 clamp(12px,3.2vmin,16px) var(--fu);letter-spacing:.04em;color:var(--ink);background:rgba(34,42,44,.92);border:1px solid var(--line);border-radius:5px;padding:0 2px;touch-action:manipulation}
+#chatPanel button:active{background:var(--rust);border-color:var(--rust)}
+#chatPanel .kw{flex:1.5}#chatPanel .ks{flex:4}#chatPanel .kx{flex:2;background:var(--rust);border-color:var(--rust);color:#fff}#chatPanel .kw.on{background:var(--amber);color:#000}
+#bZap{right:calc(var(--sr) + var(--u)*2.65);bottom:calc(var(--sb) + var(--u)*1.85)}
+#act #bZap{position:absolute;grid-area:auto;right:calc(var(--u)*.3);bottom:calc(100% + 10px);width:calc(var(--u)*.92);height:calc(var(--u)*.92);border-color:rgba(88,184,255,.6);color:#8fd0ff}
+#act #bZap i{color:#8fd0ff}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 </head>
@@ -277,12 +302,16 @@ button[hidden]{display:none!important}
   <div id="hunt"><span>The Hunt</span><i><b id="huntb"></b></i></div>
   <div id="prompt"></div>
 </div>
+<div id="chatLog" aria-live="polite"></div>
+<button id="chatBtn" aria-label="Chat" hidden><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><span id="chatDot" hidden></span></button>
+<div id="chatPanel" hidden><div id="chatQuick"></div><div id="chatIn"><span id="chatTxt"></span><i></i></div><div id="chatKeys"></div></div>
 <div id="spec" hidden><button class="mb sec" id="spPrev" aria-label="Previous player">&#8249;</button><span id="spName">Watching</span><button class="mb sec" id="spNext" aria-label="Next player">&#8250;</button><button class="mb" id="spLeave">Leave</button></div>
 <div id="btns" hidden>
   <button class="b" id="pauseb" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
   <div id="act">
     <button class="b" id="bLight" aria-label="Flashlight"><svg viewBox="0 0 24 24"><path d="M4 9h8l3 3-3 3H4zM17 7l3-2M18 12h3M17 17l3 2"/></svg><i>Light</i></button>
     <button class="b" id="bThrow" aria-label="Throw bottle"><svg viewBox="0 0 24 24"><path d="M10 3h4M11 3v4l-3 4v9h8v-9l-3-4V3"/></svg><i>Throw</i><em id="cThrow">0</em></button>
+    <button class="b" id="bZap" aria-label="Shock charge" hidden><svg viewBox="0 0 24 24"><path d="M13 2L5 14h6l-1 8 8-12h-6z"/></svg><i>Zap</i><em id="cZap">0</em></button>
     <button class="b" id="bInt" aria-label="Interact"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg><i>Use</i></button>
     <button class="b" id="bCrouch" aria-label="Crouch"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6M6 18h12"/></svg><i>Crouch</i></button>
     <button class="b" id="bRun" aria-label="Sprint"><svg viewBox="0 0 24 24"><circle cx="15" cy="4.6" r="1.7"/><path d="M13.5 7.5l-2 6M13.2 8.8l3.3 1.7 2-1M12.8 9l-2.8.8-2 2.3M11.5 13.5l3.5 2-.5 4M11.5 13.5l-2.5 3.5-3.5 1.5"/></svg><i>Sprint</i></button>
@@ -306,7 +335,7 @@ button[hidden]{display:none!important}
 <div class="scr solid" id="how" hidden>
   <h2>How to play</h2>
   <div class="row">
-    <div class="card"><p><b>Goal.</b> Find 4 fuses and a fuel can, bring them to the generator shed, start it, then run out through the gate. Follow the arrow and the green beam. Crank the gate to open it faster, but cranking is loud. Carrying supplies slows you and makes you easier to notice.</p><p><b>The Floorbound</b> hunts by sight and sound. One touch and you are dead. Running, doors and the generator are loud. Crouching is quiet. Your flashlight shows you the way and shows you to it, but holding its beam on a chasing Floorbound makes it recoil for a moment. That costs battery and needs about 7 seconds to recharge.</p><p><b>Hide</b> in lockers when it loses sight of you. Throw bottles to pull it away. Close doors to slow it. The NSE bar shows how loud you are. Once per run, after the second fuse, the Floorbound hunts you for about half a minute. Hide in a locker to break it. Beware: some survivors are not real. Real teammates show on your map. Hold your flashlight on a fake for two seconds to expose it.</p></div>
+    <div class="card"><p><b>Goal.</b> Find 4 fuses and a fuel can, bring them to the generator shed, start it, then run out through the gate. Follow the arrow and the green beam. Crank the gate to open it faster, but cranking is loud. Carrying supplies slows you and makes you easier to notice. When it is chasing you, sprinting wears you out more slowly and you recover faster, and even out of breath you can still stumble along.</p><p><b>The Floorbound</b> hunts by sight and sound. One touch and you are dead. Running, doors and the generator are loud. Crouching is quiet. Your flashlight shows you the way and shows you to it, but holding its beam on a chasing Floorbound makes it recoil for a moment. That costs battery and needs about 7 seconds to recharge. Two rare blue shock charges hide in each run: face it from up close and tap Zap (R on a keyboard) and it collapses for about 20 seconds, then gets up angry and searching.</p><p><b>Hide</b> in lockers when it loses sight of you. Throw bottles to pull it away. Close doors to slow it. The NSE bar shows how loud you are. Once per run, after the second fuse, the Floorbound hunts you for about half a minute. Hide in a locker to break it. Beware: some survivors are not real. Real teammates show on your map. Hold your flashlight on a fake for two seconds to expose it.</p></div>
     <div class="card"><p><b>Touch.</b> Left thumb moves (hold or tap the sprint button, or push the stick past its ring, to run). Right thumb looks. Tap USE near glowing objects.</p><p><b>Keyboard.</b> WASD move, Shift run, C crouch, F light, E use, Q throw, mouse drag to look, Esc pause.</p></div>
   </div>
   <div style="margin-top:12px"><button class="mb sec" style="width:200px" id="howBack">Back</button></div>
@@ -890,11 +919,14 @@ function buildPickupMesh(kind){
     const b=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.17,12),new THREE.MeshStandardMaterial({color:0x3f8f4a,roughness:.4,metalness:.4,emissive:0x0b3a12,emissiveIntensity:.8}));
     const t=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,.03,8),new THREE.MeshStandardMaterial({color:0xcfd4d6,metalness:.9,roughness:.3}));t.position.y=.1;
     const s=new THREE.Mesh(new THREE.CylinderGeometry(.052,.052,.03,12),new THREE.MeshBasicMaterial({color:0xd8ff9a}));s.position.y=.02;g.add(b,t,s);
+  }else if(kind==='charge'){
+    const b=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.2,10),new THREE.MeshStandardMaterial({color:0x1d4f8f,metalness:.5,roughness:.4,emissive:0x0a2a55}));
+    const c1=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.03,10),new THREE.MeshBasicMaterial({color:0x8fd8ff}));c1.position.y=.115;const c2=c1.clone();c2.position.y=-.115;g.add(b,c1,c2);
   }else{
     const mt=new THREE.MeshStandardMaterial({color:0x5c8a58,transparent:true,opacity:.7,roughness:.08,metalness:.2,emissive:0x0d2a10});
     const b=new THREE.Mesh(new THREE.CylinderGeometry(.045,.05,.17,10),mt),n=new THREE.Mesh(new THREE.CylinderGeometry(.018,.03,.1,8),mt);n.position.y=.13;g.add(b,n);
   }
-  const col={fuse:0xffa733,battery:0x9dff7a,bottle:0x8fe08c,fuel:0xff4a3a}[kind];
+  const col={fuse:0xffa733,battery:0x9dff7a,charge:0x58b8ff,bottle:0x8fe08c,fuel:0xff4a3a}[kind];
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:TX.glow,color:col,transparent:true,opacity:(kind==='fuse'||kind==='fuel')?.7:.4,depthWrite:false,blending:THREE.AdditiveBlending}));
   sp.scale.setScalar((kind==='fuse'||kind==='fuel')?1.1:.7);g.add(sp);g.userData.glow=sp;
   g.traverse(o=>{if(o.isMesh)o.castShadow=false});
@@ -1647,6 +1679,9 @@ function crDamage(t,dmg){
 function crUpdate(dt,gt){
   Cr.rage=G.placed*.22+(G.power?.6:0)+Math.min(.5,G.stats.t/700);
   if(Cr.grace>0){Cr.grace-=dt;Cr.sp=lerp(Cr.sp,0,.1);if(Cr.grace>0&&Cr.state==='idle')return}
+  if(Cr.state==='down'){Cr.stateT+=dt;Cr.sp=lerp(Cr.sp,0,.3);Cr.att=0;
+    if(Cr.stateT>=(Cr.downT||20)){Cr.aware=.4;crSet('search',0);Cr.searchN=3;Cr.wait=0;Cr.path=null;net.ev({k:'roar',x:Cr.x,z:Cr.z});roarFx(Cr.x,Cr.z)}
+    return}
   if(!HUNT.done&&!HUNT.on&&G.placed>=2){HUNT.pre+=dt;if(HUNT.pre>7)huntStart()}
   if(HUNT.on){if(HUNT.t>=HUNT.dur)huntEnd();else{HUNT.rt-=dt;if(HUNT.rt<=0){HUNT.rt=1.6;
     if((Cr.state==='patrol'||Cr.state==='idle'||Cr.state==='investigate'||Cr.state==='search')&&Cr.lockI<0){
@@ -1726,7 +1761,7 @@ function crUpdate(dt,gt){
 /* ============ game state, players, interaction ============ */
 const G={running:false,paused:false,t:0,seed:1,placed:0,genOn:false,genMine:false,power:false,powerT:0,over:false,stats:{t:0,hits:0,hide:0},sayT:0,noiseT:0};
 const me={id:0,name:'You',x:0,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,stamDelay:0,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,
-  fuses:0,bottles:2,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,bob:0,stepD:0,kick:0,kickT:0,shake:0,thr:0,hide:{yaw:0}};
+  fuses:0,bottles:2,charges:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,bob:0,stepD:0,kick:0,kickT:0,shake:0,thr:0,hide:{yaw:0}};
 const peers={};
 /* jump scares: rare, only fired while the Floorbound is not hunting, never more than twice a run */
 const SC={q:null,t:null,n:0,dark:false,face:false};
@@ -1855,6 +1890,7 @@ const net={role:'solo',room:'',pid:0,players:{},k:0,rm:null,offs:[],pp:{},hk:{},
       case's':if(this.role==='client')hostState(m);break;
       case'noise':if(this.role==='host')crHeard(m.x,m.z,m.r);break;
       case'ev':netEvent(m);break;
+      case'chat':chatRecv(m);break;
     }
   }};
 function lobbyUI(){
@@ -1890,6 +1926,8 @@ function netEvent(m){
     case'drop':(m.ids||[]).forEach(dropFuse);break;
     case'door':setDoor(m.i,m.o,false);break;
     case'lock':setLocker(m.i,m.o,false);break;
+    case'zap':if(net.role==='host')crDown();break;
+    case'zapfx':zapFxAt(m.x,m.z);break;
     case'beam':if(net.role==='host')Cr.stall=Math.max(Cr.stall||0,1.5);break;
     case'occ':WLD.lockers[m.i].occ=m.id;break;
     case'ins':G.placed++;storyBeat();genVisual();AU.insert(WLD.gen.x,WLD.gen.z);objective();break;
@@ -1918,12 +1956,12 @@ function newRun(seed,plist){
   const g=WLD.gate;g.open=0;g.target=0;g.col.active=true;g.gl.position.x=0;g.gr.position.x=0;g.lock.visible=true;g.beacon.material.color.set(0xff2a1a);g.bs.material.color.set(0xff2a1a);
   for(const L of WLD.lamps)setLamp(L,L.init);
   const fz=shuffle(WLD.cands.fuse.slice(),rnd);fz.forEach((p,i)=>{p.active=i<4;p.mesh.visible=p.active});
-  const cz=shuffle(WLD.cands.cons.slice(),rnd);cz.forEach((p,i)=>{setPickupKind(p,i<5?'battery':'bottle');p.active=true;p.mesh.visible=true});
+  const cz=shuffle(WLD.cands.cons.slice(),rnd);cz.forEach((p,i)=>{setPickupKind(p,i<5?'battery':i<7?'charge':'bottle');p.active=true;p.mesh.visible=true});
   const fq=shuffle(WLD.cands.fuel.slice(),rnd);fq.forEach((p,i)=>{p.active=i<1;p.mesh.visible=p.active});
   genVisual();
   HUNT.on=false;HUNT.done=false;HUNT.t=0;HUNT.pre=0;miReset();
   crReset();Cr.nx=Cr.x;Cr.nz=Cr.z;Cr.nh=Cr.h;Cr.first=undefined;
-  Object.assign(me,{x:-1.5+(me.id%4)*1.1,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,fuses:0,fuel:0,inv:0,adr:0,ns:0,bottles:2,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,kick:0,shake:0,grabbed:false,held:[]});
+  Object.assign(me,{x:-1.5+(me.id%4)*1.1,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,fuses:0,fuel:0,inv:0,adr:0,ns:0,bottles:2,charges:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,kick:0,shake:0,grabbed:false,held:[]});
   for(const k in peers)killPeer(k);
   for(const b of PR){scene.remove(b.mesh)}PR.length=0;
   $('bLight').classList.add('on');$('bRun').classList.remove('on');$('bCrouch').classList.remove('on');
@@ -1958,7 +1996,7 @@ function takePickup(id,mine){
   const p=WLD.pickups[id];if(!p||!p.active)return;p.active=false;p.mesh.visible=false;
   if(mine){
     if(p.kind==='fuel'){me.fuel++;me.held.push(id);say('Fuel can. Heavy. Take it to the generator shed.',3500)}else if(p.kind==='fuse'){me.fuses++;me.held.push(id);if(G.placed+me.fuses===2)queueScare(2.4);say('Fuse collected. '+(G.placed+me.fuses<4?'Find the rest.':'Take them to the generator shed.'),3500)}
-    else if(p.kind==='battery'){me.bat=Math.min(100,me.bat+60);say('Fresh battery.',2200)}
+    else if(p.kind==='battery'){me.bat=Math.min(100,me.bat+60);say('Fresh battery.',2200)}else if(p.kind==='charge'){me.charges++;say('Shock charge. Zap the Floorbound up close to put it down for a while.',3600)}
     
     else{me.bottles++;say('Bottle. Throw it to pull the Floorbound away.',2800)}
     AU.pickup();buzz(18);objective();net.ev({k:'pick',id});
@@ -2029,6 +2067,18 @@ function die(why){
 function spawnBottle(x,y,z,vx,vy,vz,mine){
   const m=buildPickupMesh('bottle');m.userData.glow.visible=false;m.scale.setScalar(1.6);m.position.set(x,y,z);scene.add(m);PR.push({x,y,z,vx,vy,vz,mesh:m,mine});
 }
+/* shock charge: a rare one-shot weapon. Up close and facing it, a zap drops the Floorbound for about 20 seconds. It then rises, roars and searches. */
+function zapFxAt(x,z){try{AU.noise({dur:.6,g:.25,f:3200,q:1.2,sweep:600,x,z});AU.tone({f0:900,f1:120,dur:.45,g:.12})}catch(e){}
+  if(KS.t===null){const f=$('flash');f.style.transition='none';f.style.background='#bfe6ff';f.style.opacity=.6;setTimeout(()=>{if(KS.t===null){f.style.transition='opacity .25s';f.style.opacity=0}},70)}}
+function crDown(){if(Cr.state==='down')return;crSet('down',0);Cr.sp=0;Cr.downT=20;Cr.path=null;Cr.lockI=-1;Cr.aware=0;Cr.attHit=false;Cr.lk=null;Cr.stall=0;net.ev({k:'zapfx',x:Cr.x,z:Cr.z})}
+function zap(){
+  if(!me.alive||me.hidden>=0||G.paused||G.over||me.charges<=0||G.t<(me.zapT||0))return;
+  me.zapT=G.t+1.2;
+  const bx=Cr.x-me.x,bz=Cr.z-me.z,bd=Math.hypot(bx,bz)||.001,fwd=(-bx*Math.sin(me.yaw)-bz*Math.cos(me.yaw))/bd;
+  if(Cr.state==='down'||bd>11||fwd<.75||!losClear(me.x,me.z,Cr.x,Cr.z,1.2)){say('Nothing in range. Face it from within 11 meters.',2200);return}
+  me.charges--;me.kick=1;me.kickT=0;buzz(40);zapFxAt(Cr.x,Cr.z);say('Zapped. It will get back up.',2400);
+  if(net.role==='client')net.ev({k:'zap'});else crDown();
+}
 function throwBottle(){
   if(!me.alive||me.hidden>=0||me.bottles<=0||G.paused)return;me.bottles--;me.kick=1;me.kickT=0;AU.whoosh();
   const cp=Math.cos(me.pitch),fx=-Math.sin(me.yaw)*cp,fy=Math.sin(me.pitch),fz=-Math.cos(me.yaw)*cp;
@@ -2056,7 +2106,7 @@ function findInteract(){
     const sc=d-dot*.8;if(sc<best){best=sc;IT={label,fn,x,z}}
   };
   if(me.hidden>=0){IT={label:'Leave hiding spot',fn:()=>leaveLocker()};return}
-  for(const p of WLD.pickups){if(!p.active)continue;const nm={fuel:'Take fuel can',fuse:'Take fuse',battery:'Take battery',bottle:'Take bottle'}[p.kind];cand(p.x,p.z,2.1,nm,()=>takePickup(p.id,true))}
+  for(const p of WLD.pickups){if(!p.active)continue;const nm={fuel:'Take fuel can',fuse:'Take fuse',battery:'Take battery',charge:'Take shock charge',bottle:'Take bottle'}[p.kind];cand(p.x,p.z,2.1,nm,()=>takePickup(p.id,true))}
   WLD.doors.forEach((d,i)=>cand(d.x,d.z,2.2,d.open?'Close door':'Open door',()=>{setDoor(i,!d.open,true);emitNoise(d.x,d.z,7)},.2));
   WLD.lockers.forEach((L,i)=>{if(L.occ>=0||L.target>0)return;cand(L.outX,L.outZ,1.7,L.dump?'Hide in dumpster':'Hide in locker',()=>enterLocker(i),-1)});
   if(G.power&&WLD.gate.open<.8)cand(0,38.4,3.4,'Crank the gate',crankGate,-1);
@@ -2098,21 +2148,23 @@ function updatePlayer(dt){
     me.yaw-=ax*.0042*settings.sens;me.pitch=clamp(me.pitch-ay*.0042*settings.sens,-1.35,1.35);
   }
   if(me.hidden>=0){
-    const L=WLD.lockers[me.hidden];me.yaw=lerpAng(me.yaw,L.yaw+clamp(angDiff(L.yaw,me.yaw),-.7,.7),1-Math.exp(-dt*12));me.pitch=clamp(me.pitch,-.5,.5);{const lk=1-Math.exp(-dt*12);me.x=lerp(me.x,L.inX,lk);me.z=lerp(me.z,L.inZ,lk)}me.sp=0;me.eye=lerp(me.eye,L.dump?.85:1.5,.15);return;
+    const L=WLD.lockers[me.hidden];me.yaw=lerpAng(me.yaw,L.yaw+clamp(angDiff(L.yaw,me.yaw),-.95,.95),1-Math.exp(-dt*12));me.pitch=clamp(me.pitch,-.5,.5);{const lk=1-Math.exp(-dt*12);me.x=lerp(me.x,L.inX,lk);me.z=lerp(me.z,L.inZ,lk)}me.sp=0;me.eye=lerp(me.eye,L.dump?.85:1.5,.15);return;
   }
   const want=Math.hypot(mx,my)>.08;
+  /* being hunted gives a surge: slower stamina drain, quicker recovery, and a winded jog instead of a dead stop */
+  const chased=(Cr.state==='chase'&&Cr.tgt===me.id)||(HUNT.on&&Cr.state!=='idle'&&Math.hypot(me.x-Cr.x,me.z-Cr.z)<30);
   if(!want&&me.latch){me.latch=false;$('bRun').classList.remove('on')} // sprint ends when you stop
   let sprint=(me.latch||IN.run||K.ShiftLeft||K.ShiftRight)&&want&&!me.crouch&&!me.exh&&my>-.3;
   if(me.stam<=0&&!me.exh){me.exh=true;me.latch=false;$('bRun').classList.remove('on');say('Out of breath.',1500)}
-  if(me.exh&&me.stam>28)me.exh=false;
+  if(me.exh&&me.stam>(chased?18:28))me.exh=false;
   me.sprint=sprint;
-  const top=(me.crouch?1.9:sprint?5.5-.22*me.fuses-.3*me.fuel:3.5-.12*me.fuel)*(me.hp<50?.9:1),tx=0,fx=-Math.sin(me.yaw),fz=-Math.cos(me.yaw),rx=Math.cos(me.yaw),rz=-Math.sin(me.yaw);
+  const top=(me.crouch?1.9:sprint?5.5-.22*me.fuses-.3*me.fuel:(me.exh&&chased?4.2:3.5)-.12*me.fuel)*(me.hp<50?.9:1),tx=0,fx=-Math.sin(me.yaw),fz=-Math.cos(me.yaw),rx=Math.cos(me.yaw),rz=-Math.sin(me.yaw);
   const dvx=(fx*my+rx*mx)*top*Math.min(1,Math.hypot(mx,my)),dvz=(fz*my+rz*mx)*top*Math.min(1,Math.hypot(mx,my));
   const k=1-Math.exp(-dt*(want?13:17));me.vx+=(dvx-me.vx)*k;me.vz+=(dvz-me.vz)*k;
   me.x+=me.vx*dt;resolveCircle(me,.36);me.z+=me.vz*dt;resolveCircle(me,.36);
   me.sp=Math.hypot(me.vx,me.vz);
   // stamina
-  if(sprint&&me.sp>3){me.stam=Math.max(0,me.stam-21*dt*(me.adr>0?0:G.power?.55:1));me.stamDelay=.8}else{me.stamDelay=Math.max(0,me.stamDelay-dt);if(me.stamDelay<=0)me.stam=Math.min(100,me.stam+(me.exh?11:18)*dt)}
+  if(sprint&&me.sp>3){me.stam=Math.max(0,me.stam-21*dt*(me.adr>0?0:G.power?.55:1)*(chased?(HUNT.on?.5:.65):1));me.stamDelay=chased?.45:.8}else{me.stamDelay=Math.max(0,me.stamDelay-dt);if(me.stamDelay<=0)me.stam=Math.min(100,me.stam+(me.exh?(chased?15:11):(chased?20:18))*dt)}
   // battery
   if(me.light){me.bat=Math.max(0,me.bat-dt*.36);if(me.bat<=0){me.light=false;$('bLight').classList.remove('on');say('Flashlight battery is dead.',2500)}}
   // beam: holding the light on a hunting Floorbound makes it recoil for a moment (costs battery, then recharges)
@@ -2182,7 +2234,8 @@ function drawMini(){
 let lampT=0,hudT=0,miniT=0,grainT=0,beatT=0,breathT=0,evT=25,skT=0,t12=0,lastPrompt='',frames=0,fsum=0,slow=0,fast=0,crStep=0,heardAt=0;
 function worldAnim(dt,t){
   for(const d of WLD.doors){d.ang+=((d.open?d.sw*1.5:0)-d.ang)*(1-Math.exp(-dt*5));d.pv.rotation.y=d.ang}
-  for(const L of WLD.lockers){L.open+=(L.target-L.open)*(1-Math.exp(-dt*6));L.pv.rotation.y=-L.open*1.75}
+  {const _hl=SP.on?(peers[SP.id]?peers[SP.id].hidden:-1):(me.alive?me.hidden:-1); /* the door you hide behind is see-through to you: it is not drawn from inside */
+    WLD.lockers.forEach((L,i)=>{L.open+=(L.target-L.open)*(1-Math.exp(-dt*6));L.pv.rotation.y=-L.open*1.75;L.pv.visible=i!==_hl})}
   const g=WLD.gate;if(g.target>g.open)g.open=Math.min(g.target,g.open+dt/12);else if(g.target<g.open)g.open=Math.max(g.target,g.open-dt);
   g.gl.position.x=-g.open*3.1;g.gr.position.x=g.open*3.1;g.col.active=g.open<.8;
   if(!G.power){const b=(Math.sin(t*3)>.2)?1:.15;g.bs.material.opacity=.8*b;g.beacon.visible=b>.5}else{g.bs.material.opacity=.9;g.beacon.visible=true}
@@ -2248,7 +2301,7 @@ function updateCamera(dt){
   // flashlight
   let li=(SP.on?SP.lit:me.light&&me.alive)&&!SC.dark&&!(DR.fl>0&&Math.sin(G.t*55)>-.3)?1:0;if(li){if(me.bat<15)li*=Math.sin(t*50)*Math.sin(t*19)>.5-me.bat/60?.2:1;
     const prox=clamp(1-Math.hypot(me.x-Cr.x,me.z-Cr.z)/16,0,1);if(prox>0&&Cr.state!=='idle'&&Math.sin(t*61)*Math.sin(t*23)>.92-prox*.55)li*=.12}
-  flashL.intensity=3.2*li;flashL.position.set(.14,-.12,0);
+  flashL.intensity=3.2*(li||(me.hidden>=0&&me.alive&&!SP.on&&!SC.dark?.2:0));flashL.position.set(.14,-.12,0);
   // viewmodel
   if(vm){vm.visible=me.alive&&me.hidden<0&&!SP.on;const h=vm.userData.home;let ox=Math.cos(me.bob)*bobA*.9,oy=Math.abs(Math.sin(me.bob))*bobA*-.8,rz2=0,rx2=0;
     if(me.kick>0){const k=me.kickT/.55,a=Math.sin(Math.min(1,k)*Math.PI);oy+=a*.1;rx2=-a*.9;ox-=a*.04}
@@ -2263,6 +2316,7 @@ function updateCamera(dt){
 }
 const _hc={};function ss(id,p,v){const k=id+p;if(_hc[k]===v)return;_hc[k]=v;$(id).style[p]=v}
 function hud(dt){
+  {const cb=$('chatBtn'),w=net.role!=='solo'&&G.running&&!G.paused;if(cb.hidden===w)cb.hidden=!w;if(!w&&CH.open)closeChat()}
   $('mini').classList.toggle('off',!settings.map);
   $('hunt').classList.toggle('on',HUNT.on&&me.alive);if(HUNT.on)$('huntb').style.transform='scaleX('+clamp(1-HUNT.t/HUNT.dur,0,1).toFixed(2)+')';
   {let tx='',tg=null;
@@ -2278,7 +2332,7 @@ function hud(dt){
   {const nz=me.hidden>=0?0:me.sp>.5?(me.sprint?1:me.crouch?.18:.5):.05;me.ns=lerp(me.ns||0,Math.min(1,nz+(me.light&&me.hidden<0?.1:0)),.35);ss('nsb','transform','scaleX('+me.ns.toFixed(2)+')');ss('nsb','background',me.ns>.7?'#d6403a':me.ns>.3?'#e8a93a':'#9fd0c4')}
   ss('stb','transform','scaleX('+clamp(me.stam/100,0,1).toFixed(2)+')');ss('btb','transform','scaleX('+clamp(me.bat/100,0,1).toFixed(2)+')');
   const txt=IT?IT.label:'';if(txt!==lastPrompt){lastPrompt=txt;const p=$('prompt');p.textContent=txt;p.classList.toggle('on',!!txt)}$('bInt').classList.toggle('ready',!!IT);
-  const th=$('bThrow');if(th.hidden!==(me.bottles<=0))th.hidden=me.bottles<=0;if($('cThrow').textContent!=me.bottles)$('cThrow').textContent=me.bottles;
+  const th=$('bThrow');if(th.hidden!==(me.bottles<=0))th.hidden=me.bottles<=0;if($('cThrow').textContent!=me.bottles)$('cThrow').textContent=me.bottles;{const zb=$('bZap'),zv=me.charges>0&&me.alive;if(zb.hidden===zv)zb.hidden=!zv;if($('cZap').textContent!=me.charges)$('cZap').textContent=me.charges}
   
   let aw=0;if(me.alive&&Cr.tgt===me.id)aw=clamp(Cr.aware,0,1);if((Cr.state==='chase'||Cr.state==='attack')&&Cr.tgt===me.id)aw=1;
   ss('eye','opacity',aw>.05?'1':'0');ss('eyearc','strokeDashoffset',(100.5*(1-aw)).toFixed(1));
@@ -2297,7 +2351,7 @@ let camDip=0,camKnock=0,shN=0,vmY=null,vmP=0,vmSX=0,vmSY=0;
 function renderFrame(dt){
   const C=Crv.C,fk=KS.t===null&&SC.face&&SC.t!==null&&SC.t<1.3;if(C){const dd=Math.hypot(Cr.x-camera.position.x,Cr.z-camera.position.z);C.near=dd<28;C.root.visible=dd<44||KS.t!==null||fk;if(C.root.visible){
     if(KS.t!==null){C.jump(dt,KS.t,KS)}else if(fk){C.jump(dt,SC.t-.95,{ux:-Math.sin(me.yaw),uz:-Math.cos(me.yaw),dh0:3.4,a0:0,dur:.5})}
-    else{{if(C.px===undefined||Math.hypot(C.px-Cr.x,C.pz-Cr.z)>3){C.px=Cr.x;C.pz=Cr.z;C.ry=Cr.h}else{C.px=lerp(C.px,Cr.x,1-Math.exp(-dt*24));C.pz=lerp(C.pz,Cr.z,1-Math.exp(-dt*24));C.ry=lerpAng(C.ry,Cr.h,1-Math.exp(-dt*16))}C.root.position.set(C.px,0,C.pz);C.root.rotation.y=C.ry}C.pose(dt,Cr.state,Cr.sp,G.t,Cr.state==='attack'?Math.min(1,Cr.att/.62):0)}}}
+    else{{if(C.px===undefined||Math.hypot(C.px-Cr.x,C.pz-Cr.z)>3){C.px=Cr.x;C.pz=Cr.z;C.ry=Cr.h}else{C.px=lerp(C.px,Cr.x,1-Math.exp(-dt*24));C.pz=lerp(C.pz,Cr.z,1-Math.exp(-dt*24));C.ry=lerpAng(C.ry,Cr.h,1-Math.exp(-dt*16))}C.root.position.set(C.px,0,C.pz);C.root.rotation.y=C.ry}C.pose(dt,Cr.state,Cr.sp,G.t,Cr.state==='attack'?Math.min(1,Cr.att/.62):0);C.dn=lerp(C.dn||0,Cr.state==='down'?1:0,1-Math.exp(-dt*5));C.root.rotation.order='YXZ';C.root.rotation.x=-C.dn*1.5;C.root.position.y=C.dn*.25}}}
   if(shN++%(flashL.castShadow?2:(me.sp>.4||(C&&C.near)?3:12))===0)renderer.shadowMap.needsUpdate=true;
   renderer.render(scene,camera);
 }
@@ -2323,7 +2377,7 @@ const STANDALONE=matchMedia('(display-mode: fullscreen)').matches||matchMedia('(
 function startRun(seed,plist){
   tryLock();if(IS_TOUCH&&!STANDALONE)goFull();
   try{history.pushState({hg:1},'')}catch(e){}
-  AU.init();AU.resume();hideAll();$('hud').hidden=false;$('btns').hidden=false;$('end').hidden=true;
+  AU.init();AU.resume();hideAll();chatClear();$('hud').hidden=false;$('btns').hidden=false;$('end').hidden=true;
   G.running=true;G.paused=false;G.seed=seed;me.id=net.pid;newRun(seed,plist);
   say('Find 4 fuses and bring them to the generator shed.',5200);story('Hollowgate Asylum. The night shift never came home.',7);story('Stay quiet. It hears everything.',17,3800);
   setTimeout(()=>{if(G.running&&!G.over)say('Stay quiet. Crouch to sneak. Hide when it sees you.',4200)},6500);
@@ -2341,7 +2395,7 @@ function setPaused(p){
   if(!G.running||G.over)return;G.paused=p;
   if(p){show('pause');IN.mx=IN.my=0;if(document.pointerLockElement)document.exitPointerLock()}else hideAll();
 }
-function quitToMenu(){specReset();
+function quitToMenu(){specReset();chatClear();
   net.close();scareEnd();killFx(0);AU.duck(false);KS.t=null;$('flash').style.opacity=0;G.running=false;G.paused=false;G.over=false;$('hud').hidden=true;$('btns').hidden=true;$('end').hidden=true;
   for(const b of PR)scene.remove(b.mesh);PR.length=0;G.genOn=false;G.power=false;me.thr=0;$('hurt').style.opacity=0;
   HUNT.on=false;miReset();crReset();show('menu');IN.mx=IN.my=0;
@@ -2355,6 +2409,59 @@ function endGame(win,title,sub){
   $('hud').hidden=true;$('btns').hidden=true;$('eRetry').hidden=net.role==='client';$('eRetry').textContent=net.role==='host'?'Try again (everyone)':'Try again';if(net.role==='client'&&G.over)$('endTip').textContent+=' Waiting for the host to start the next run.';show('end');
   if(win){AU.stinger();$('hurt').style.opacity=0}
 }
+/* ---- co-op chat with a built-in keyboard (no system keyboard, so the game stays fullscreen and landscape) ---- */
+const CH={open:false,txt:'',shift:true,last:0,seen:{},built:false};
+function chatBuild(){
+  if(CH.built)return;CH.built=true;
+  const rows=[['1','2','3','4','5','6','7','8','9','0'],['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['SHIFT','z','x','c','v','b','n','m','BACK'],['CLOSE',',','SPACE','.','!','?','SEND']];
+  const keys=$('chatKeys'),lab={SHIFT:'\u21E7',BACK:'\u232B',SPACE:'space',SEND:'Send',CLOSE:'Close'};
+  rows.forEach(r=>{const d=document.createElement('div');d.className='kr';r.forEach(k=>{const b=document.createElement('button');b.type='button';b.dataset.k=k;b.textContent=lab[k]||k;if(k==='SPACE')b.className='ks';else if(k==='SEND')b.className='kx';else if(lab[k])b.className='kw';d.appendChild(b)});keys.appendChild(d)});
+  ['Help!','It sees me','Hiding','Run!','Need a fuse','Generator is on'].forEach(t=>{const b=document.createElement('button');b.type='button';b.dataset.q=t;b.textContent=t;$('chatQuick').appendChild(b)});
+  const p=$('chatPanel');
+  p.addEventListener('pointerdown',e=>{e.stopPropagation();const t=e.target.closest&&e.target.closest('button');if(!t)return;e.preventDefault();buzz(6);AU.resume();
+    if(t.dataset.q){chatSend(t.dataset.q);return}chatPress(t.dataset.k)});
+  ['touchstart','touchmove','mousedown','click'].forEach(ev=>p.addEventListener(ev,e=>e.stopPropagation()));
+  const cb=$('chatBtn');cb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();AU.resume();buzz(8);CH.open?closeChat():openChat()});
+}
+function chatShiftUI(){$('chatKeys').querySelectorAll('button').forEach(b=>{const k=b.dataset.k;if(k&&k.length===1&&/[a-z]/.test(k))b.textContent=CH.shift?k.toUpperCase():k;if(k==='SHIFT')b.classList.toggle('on',CH.shift)})}
+function chatUI(){$('chatTxt').textContent=CH.txt;chatShiftUI()}
+function chatType(c){if(CH.txt.length>=60)return;CH.txt+=c;if(c!==' ')CH.shift=false;chatUI()}
+function chatPress(k){
+  if(k==='SHIFT'){CH.shift=!CH.shift;chatShiftUI();return}
+  if(k==='BACK'){CH.txt=CH.txt.slice(0,-1);if(!CH.txt)CH.shift=true;chatUI();return}
+  if(k==='SPACE'){chatType(' ');return}
+  if(k==='SEND'){chatSend(CH.txt);return}
+  if(k==='CLOSE'){closeChat();return}
+  chatType(CH.shift&&/[a-z]/.test(k)?k.toUpperCase():k);
+}
+function openChat(){if(CH.open||net.role==='solo'||!G.running)return;chatBuild();CH.open=true;CH.txt='';CH.shift=true;$('chatDot').hidden=true;$('chatPanel').hidden=false;IN.keys={};IN.mx=IN.my=0;if(document.pointerLockElement)document.exitPointerLock();chatUI()}
+function closeChat(){if(!CH.open)return;CH.open=false;$('chatPanel').hidden=true;if(!IS_TOUCH&&G.running&&!G.paused&&!G.over)tryLock()}
+function chatKey(e){
+  if(e.code==='Escape'){e.preventDefault();closeChat();return}
+  if(e.code==='Enter'){e.preventDefault();chatSend(CH.txt);return}
+  if(e.code==='Backspace'){e.preventDefault();chatPress('BACK');return}
+  if(e.key&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();if(CH.txt.length<60){CH.txt+=e.key;chatUI()}}
+}
+function chatPush(n,m,mine){
+  const log=$('chatLog'),d=document.createElement('div'),b=document.createElement('b');
+  b.textContent=n+(mine?' (you)':'');d.appendChild(b);d.appendChild(document.createTextNode(m));log.appendChild(d);
+  while(log.children.length>5)log.removeChild(log.firstChild);
+  setTimeout(()=>{d.classList.add('old');setTimeout(()=>d.remove(),650)},9000);
+}
+function chatSend(text){
+  text=String(text||'').trim().slice(0,60);if(!text)return;
+  const now=performance.now();if(now-CH.last<700)return;CH.last=now;
+  const nm=((net.players[net.pid]||{}).name)||'Player';
+  net.send({t:'chat',f:net.pid,n:nm,m:text});chatPush(nm,text,true);
+  CH.txt='';CH.shift=true;chatUI();closeChat();
+}
+function chatRecv(m){
+  const id=String(m.f),now=performance.now();if(now-(CH.seen[id]||0)<300)return;CH.seen[id]=now;
+  const n=String(m.n||'Player').slice(0,16),t=String(m.m||'').slice(0,60);if(!t)return;
+  chatPush(n,t,false);try{AU.click()}catch(e){}
+  if(!CH.open&&!$('chatBtn').hidden)$('chatDot').hidden=false;
+}
+function chatClear(){closeChat();$('chatLog').innerHTML='';CH.seen={};$('chatBtn').hidden=true;$('chatDot').hidden=true}
 /* ============ input + UI wiring ============ */
 let U=56;function calcU(){U=clamp(Math.min(innerWidth,innerHeight)*.125,48,66)}
 /* landscape always: lock the screen when the browser allows it, otherwise turn the whole game sideways in portrait */
@@ -2367,7 +2474,7 @@ function layout(){
   else{st.inset='';st.left=st.top=st.width=st.height=st.transformOrigin=st.transform='';for(const k of['--sl','--sr','--st','--sb'])st.removeProperty(k)}
 }
 function PT(e){return ROT?{x:e.clientY,y:innerWidth-e.clientX}:{x:e.clientX,y:e.clientY}}
-function tryLock(){
+function tryLock(){if(CH.open)return;
   if(lockTries>=3)return;lockTries++;
   try{const o=screen.orientation;if(!o||!o.lock)return;
     o.lock('landscape').catch(()=>{if(IS_TOUCH&&!document.fullscreenElement&&document.documentElement.requestFullscreen){const r=document.documentElement.requestFullscreen({navigationUI:'hide'});if(r&&r.then)r.then(()=>o.lock('landscape')).catch(()=>{})}})}catch(e){}
@@ -2400,18 +2507,20 @@ function bindInput(){
   press('bInt',doInteract);{const rb=$('bRun');let t0=0,hold=false;
     rb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();AU.resume();buzz(8);AU.click();if(me.latch){me.latch=false;rb.classList.remove('on');hold=false}else{me.latch=true;rb.classList.add('on');t0=performance.now();hold=true}});
     const rel=()=>{if(hold&&performance.now()-t0>260){me.latch=false;rb.classList.remove('on')}hold=false};
-    rb.addEventListener('pointerup',rel);rb.addEventListener('pointercancel',rel);rb.addEventListener('pointerleave',rel);rb.addEventListener('contextmenu',e=>e.preventDefault())}press('bCrouch',toggleCrouch);press('bLight',toggleLight);press('bThrow',throwBottle);press('pauseb',()=>setPaused(true));
+    rb.addEventListener('pointerup',rel);rb.addEventListener('pointercancel',rel);rb.addEventListener('pointerleave',rel);rb.addEventListener('contextmenu',e=>e.preventDefault())}press('bCrouch',toggleCrouch);press('bLight',toggleLight);press('bThrow',throwBottle);press('bZap',zap);press('pauseb',()=>setPaused(true));
   addEventListener('keydown',e=>{
+    if(CH.open){chatKey(e);return}
+    if(e.code==='Enter'&&net.role!=='solo'&&G.running&&!G.paused&&!$('chatBtn').hidden){e.preventDefault();openChat();return}
     if(e.repeat&&e.code!=='KeyW')return;IN.keys[e.code]=true;
     if(!G.running||G.over)return;
     if(e.code==='Escape'){setPaused(!G.paused);return}
     if(G.paused)return;
-    if(e.code==='KeyC')toggleCrouch();else if(e.code==='KeyF')toggleLight();else if(e.code==='KeyE')doInteract();else if(e.code==='KeyQ')throwBottle();else if(SP.on&&e.code==='ArrowLeft')specCycle(-1);else if(SP.on&&e.code==='ArrowRight')specCycle(1);
+    if(e.code==='KeyC')toggleCrouch();else if(e.code==='KeyF')toggleLight();else if(e.code==='KeyE')doInteract();else if(e.code==='KeyQ')throwBottle();else if(e.code==='KeyR')zap();else if(SP.on&&e.code==='ArrowLeft')specCycle(-1);else if(SP.on&&e.code==='ArrowRight')specCycle(1);
     if(['Space','ArrowUp','ArrowDown','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault();
   });
   addEventListener('keyup',e=>{IN.keys[e.code]=false});
   addEventListener('blur',()=>{IN.keys={}});document.addEventListener('pointerdown',e=>{const t=e.target;if(t&&t.closest&&t.closest('.mb,.b,.seg button'))buzz(6)},true);
-  document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&G.running&&!G.paused&&!G.over&&!IS_TOUCH)setPaused(true)});
+  document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&G.running&&!G.paused&&!G.over&&!IS_TOUCH&&!CH.open)setPaused(true)});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.running&&!G.over&&net.role==='solo')setPaused(true)});
   addEventListener('resize',resize);addEventListener('pointerdown',tryLock,true);if(window.visualViewport)visualViewport.addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,200));
   document.addEventListener('gesturestart',e=>e.preventDefault());
