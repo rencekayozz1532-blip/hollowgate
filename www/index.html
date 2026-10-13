@@ -40,7 +40,7 @@ body{padding:0!important}
 .bar{margin-left:26px}
 #pauseb{position:absolute;right:var(--sr);top:var(--st);width:calc(var(--u)*.7);height:calc(var(--u)*.7);pointer-events:auto}
 #cross{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 4px #000}
-#eye{position:y;left:50%;top:calc(50% - 46px);width:34px;height:34px;margin-left:-17px;opacity:0;transition:opacity .2s}
+#eye{position:absolute;left:50%;top:calc(50% - 46px);width:34px;height:34px;margin-left:-17px;opacity:0;transition:opacity .2s}
 #eye circle{fill:none;stroke-width:3}
 #eye .bg{stroke:rgba(255,255,255,.15)}
 #eye .arc{stroke:var(--blood);stroke-linecap:butt;transform:rotate(-90deg);transform-origin:center;stroke-dasharray:100.5;stroke-dashoffset:100.5}
@@ -256,6 +256,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .set{grid-template-columns:minmax(96px,140px) minmax(0,1fr)}
 .seg button{white-space:nowrap}
 #lobby h2,#how h2,#settings h2{margin-top:0}
+button[hidden]{display:none!important}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 </head>
@@ -1756,6 +1757,7 @@ function readNote(i){if(SEEN.has(i))return;SEEN.add(i);const n=store.get('notes'
 /* spectating: once you are out in co-op, follow the teammates who are still playing */
 const SP={on:false,id:null,res:null,lit:false};
 const specKeys=()=>Object.keys(peers).filter(k=>peers[k].alive&&!peers[k].escaped);
+let specEye=1.62;
 function specReset(){SP.on=false;$('spec').hidden=true;$('vitals').style.display='';$('prompt').style.display=''}
 function finishOrSpectate(win,title,sub){if(net.role!=='solo'&&specKeys().length)beginSpectate(win,title,sub);else endGame(win,title,sub)}
 function specLabel(){const p=peers[SP.id];if(p)$('spName').textContent='Watching '+(p.name||'teammate')}
@@ -1845,9 +1847,9 @@ const net={role:'solo',room:'',pid:0,players:{},k:0,rm:null,offs:[],pp:{},hk:{},
       case'welcome':if(this.role==='joining'&&m.k===this.k){this.role='client';this.pid=m.pid;me.id=m.pid;this.players=m.players;if(this.rm)this.rm.presence({pid:m.pid}).catch(()=>{});lobbyUI()}break;
       case'full':if(this.role==='joining'&&m.k===this.k){this.close();lobbyUI();$('lMsg').textContent='That room is full.'}break;
       case'lobby':if(this.role==='client'){this.players=m.players;lobbyUI()}break;
-      case'start':if(this.role==='client'&&!G.running)startRun(m.seed,m.players);break;
+      case'start':if(this.role==='client'&&(!G.running||G.over))startRun(m.seed,m.players);break;
       case'leave':if(peers[m.f])killPeer(m.f);
-        if(this.role==='client'&&m.f===0){if(G.running){if(!G.over){say('Lost the connection to the host.',2500);setTimeout(quitToMenu,2600)}}else{this.close();lobbyUI();$('lMsg').textContent='The host left the room.'}break}
+        if(this.role==='client'&&m.f===0){if(G.running){if(!G.over){say('Lost the connection to the host.',2500);setTimeout(quitToMenu,2600)}else{$('endTip').textContent='The host left the room. Go back to the main menu.';$('eRetry').hidden=true}}else{this.close();lobbyUI();$('lMsg').textContent='The host left the room.'}break}
         if(this.players[m.f]){delete this.players[m.f];for(const k in this.hk)if(this.hk[k]===m.f)delete this.hk[k];lobbyUI()}break;
       case'p':peerState(m);break;
       case's':if(this.role==='client')hostState(m);break;
@@ -2210,7 +2212,7 @@ function simulate(dt){
   }else crUpdate(dt,t);
   for(const id in peers){
     const p=peers[id],k=1-Math.exp(-dt*12);p.x=lerp(p.x,p.nx,k);p.z=lerp(p.z,p.nz,k);p.yaw=lerpAng(p.yaw,p.ny,k);p.pit=lerp(p.pit||0,p.npit||0,k);
-    p.av.root.visible=p.hidden<0&&!p.escaped;p.av.root.position.set(p.x,0,p.z);p.av.root.rotation.y=p.yaw+Math.PI;p.av.pose(dt,p.sp,p.crouch,p.light,t,!p.alive);
+    p.av.root.visible=p.hidden<0&&!p.escaped&&!(SP.on&&String(SP.id)===String(id));p.av.root.position.set(p.x,0,p.z);p.av.root.rotation.y=p.yaw+Math.PI;p.av.pose(dt,p.sp,p.crouch,p.light,t,!p.alive);
     if(t-p.last>6)killPeer(id);
   }
   if(net.role!=='solo'){t12+=dt;if(t12>=.085){t12=0;
@@ -2241,14 +2243,14 @@ function updateCamera(dt){
   if(!me.alive){me.deadT=(me.deadT||0)+dt;eye=lerp(me.eye,.25,clamp(me.deadT*2,0,1));roll=clamp(me.deadT*1.5,0,1)*.7}else me.deadT=0;
   camDip*=Math.exp(-dt*10);camKnock*=Math.exp(-dt*5);
   camera.position.set(me.x+rx*bx,eye+by-camDip,me.z+rz*bx);camera.rotation.set(me.pitch+sy-camKnock*.14,me.yaw+sx,roll+(KS.t!==null?KS.rl:0)+camKnock*.07*Math.sin(t*34)+DR.d*.0005*Math.sin(t*.8));
-  if(SP.on){const p=peers[SP.id];if(p){camera.position.set(p.x,p.hidden>=0?1.5:p.crouch?1.1:1.62,p.z);camera.rotation.set(p.pit||0,p.yaw,0)}}
-  const fov=(me.sprint&&me.sp>3?79:72+me.thr*2)+(KS.t!==null?KS.pf:0);if(Math.abs(camera.fov-fov)>.05){camera.fov=lerp(camera.fov,fov,1-Math.exp(-dt*6));camera.updateProjectionMatrix()}
+  if(SP.on){const p=peers[SP.id];if(p){specEye=lerp(specEye,p.hidden>=0?1.5:p.crouch?1.1:1.62,1-Math.exp(-dt*9));camera.position.set(p.x,specEye,p.z);camera.rotation.set(p.pit||0,p.yaw,0)}}
+  const _sp=SP.on&&peers[SP.id],fov=((_sp?(_sp.sprint&&_sp.sp>3):(me.sprint&&me.sp>3))?79:72+me.thr*2)+(KS.t!==null?KS.pf:0);if(Math.abs(camera.fov-fov)>.05){camera.fov=lerp(camera.fov,fov,1-Math.exp(-dt*6));camera.updateProjectionMatrix()}
   // flashlight
   let li=(SP.on?SP.lit:me.light&&me.alive)&&!SC.dark&&!(DR.fl>0&&Math.sin(G.t*55)>-.3)?1:0;if(li){if(me.bat<15)li*=Math.sin(t*50)*Math.sin(t*19)>.5-me.bat/60?.2:1;
     const prox=clamp(1-Math.hypot(me.x-Cr.x,me.z-Cr.z)/16,0,1);if(prox>0&&Cr.state!=='idle'&&Math.sin(t*61)*Math.sin(t*23)>.92-prox*.55)li*=.12}
   flashL.intensity=3.2*li;flashL.position.set(.14,-.12,0);
   // viewmodel
-  if(vm){vm.visible=me.alive&&me.hidden<0;const h=vm.userData.home;let ox=Math.cos(me.bob)*bobA*.9,oy=Math.abs(Math.sin(me.bob))*bobA*-.8,rz2=0,rx2=0;
+  if(vm){vm.visible=me.alive&&me.hidden<0&&!SP.on;const h=vm.userData.home;let ox=Math.cos(me.bob)*bobA*.9,oy=Math.abs(Math.sin(me.bob))*bobA*-.8,rz2=0,rx2=0;
     if(me.kick>0){const k=me.kickT/.55,a=Math.sin(Math.min(1,k)*Math.PI);oy+=a*.1;rx2=-a*.9;ox-=a*.04}
     if(vmY===null){vmY=me.yaw;vmP=me.pitch}const kd=1-Math.exp(-dt*9);vmSX=lerp(vmSX,clamp(angDiff(vmY,me.yaw)/dt*.004,-.05,.05),kd);vmSY=lerp(vmSY,clamp(-(me.pitch-vmP)/dt*.004,-.04,.04),kd);vmY=me.yaw;vmP=me.pitch;flashL.target.position.set(vmSX*3,vmSY*3,-1);
     const lag=Math.sin(t*1.1)*.002;vm.position.set(h.x+ox+lag+vmSX,h.y+oy+vmSY,h.z);vm.rotation.set(rx2+(me.crouch?.04:0)+vmSY*2,.06-vmSX*2.5,rz2);
@@ -2256,8 +2258,8 @@ function updateCamera(dt){
   if(scene.fog){FOG_T.copy(FOG_A).lerp(FOG_B,clamp((me.thr||0)+(HUNT.on?.6:0),0,1)*.55);scene.fog.color.copy(FOG_T);scene.background.copy(FOG_T).multiplyScalar(.7)}
   // sky, sun, dust follow
   WLD.sky.position.copy(camera.position);WLD.moonSpr.position.set(camera.position.x-170,200,camera.position.z-230);
-  sun.target.position.set(me.x,0,me.z);sun.position.set(me.x-38,56,me.z-28);
-  WLD.dust.position.set(Math.round(me.x),0,Math.round(me.z));WLD.dust.rotation.y=t*.02;
+  const _sx=SP.on?camera.position.x:me.x,_sz=SP.on?camera.position.z:me.z;sun.target.position.set(_sx,0,_sz);sun.position.set(_sx-38,56,_sz-28);
+  WLD.dust.position.set(Math.round(_sx),0,Math.round(_sz));WLD.dust.rotation.y=t*.02;
 }
 const _hc={};function ss(id,p,v){const k=id+p;if(_hc[k]===v)return;_hc[k]=v;$(id).style[p]=v}
 function hud(dt){
@@ -2326,9 +2328,15 @@ function startRun(seed,plist){
   say('Find 4 fuses and bring them to the generator shed.',5200);story('Hollowgate Asylum. The night shift never came home.',7);story('Stay quiet. It hears everything.',17,3800);
   setTimeout(()=>{if(G.running&&!G.over)say('Stay quiet. Crouch to sneak. Hide when it sees you.',4200)},6500);
   try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}
-  $('eRetry').hidden=net.role!=='solo';
+  $('eRetry').hidden=net.role==='client';$('eRetry').textContent=net.role==='host'?'Try again (everyone)':'Try again';if(net.role==='client'&&G.over)$('endTip').textContent+=' Waiting for the host to start the next run.';
 }
 function startSolo(){net.close();startRun((Math.random()*1e9)|0,null)}
+function retryRun(){
+  if(net.role==='client')return; /* clients wait for the host */
+  if(net.role==='host'){const seed=(Math.random()*1e9)|0,m={t:'start',seed,players:net.players};net.send(Object.assign({},m));startRun(seed,net.players);
+    [500,1100].forEach(d=>setTimeout(()=>{if(G.running&&!G.over&&net.role==='host'&&G.stats.t<8)net.send(Object.assign({},m))},d));return}
+  startSolo();
+}
 function setPaused(p){
   if(!G.running||G.over)return;G.paused=p;
   if(p){show('pause');IN.mx=IN.my=0;if(document.pointerLockElement)document.exitPointerLock()}else hideAll();
@@ -2344,7 +2352,7 @@ function endGame(win,title,sub){
   if(G.over)return;G.over=true;G.paused=false;IN.mx=IN.my=0;
   $('endT').textContent=title;$('endT').style.color=win?'#9fd58a':'#d9382f';let nb=false;if(win){store.set('wins',store.get('wins',0)+1);const b=store.get('best',0);if(!b||G.stats.t<b){store.set('best',Math.floor(G.stats.t));nb=b>0}}$('endS').textContent=sub+(nb?' New best time.':'');$('endTip').textContent=win?'Rank is based on time, hits taken and how often you hid.':tipFor(sub);
   $('endStat').innerHTML='<div><span>Time</span>'+fmt(G.stats.t)+'</div><div><span>Fuses placed</span>'+G.placed+'/4</div><div><span>Hits taken</span>'+G.stats.hits+'</div><div><span>Times hidden</span>'+G.stats.hide+'</div>'+(win?'<div><span>Rank</span>'+rankOf()+'</div>':'');
-  $('hud').hidden=true;$('btns').hidden=true;$('eRetry').hidden=net.role!=='solo';show('end');
+  $('hud').hidden=true;$('btns').hidden=true;$('eRetry').hidden=net.role==='client';$('eRetry').textContent=net.role==='host'?'Try again (everyone)':'Try again';if(net.role==='client'&&G.over)$('endTip').textContent+=' Waiting for the host to start the next run.';show('end');
   if(win){AU.stinger();$('hurt').style.opacity=0}
 }
 /* ============ input + UI wiring ============ */
@@ -2398,7 +2406,7 @@ function bindInput(){
     if(!G.running||G.over)return;
     if(e.code==='Escape'){setPaused(!G.paused);return}
     if(G.paused)return;
-    if(e.code==='KeyC')toggleCrouch();else if(e.code==='KeyF')toggleLight();else if(e.code==='KeyE')doInteract();else if(e.code==='KeyQ')throwBottle();
+    if(e.code==='KeyC')toggleCrouch();else if(e.code==='KeyF')toggleLight();else if(e.code==='KeyE')doInteract();else if(e.code==='KeyQ')throwBottle();else if(SP.on&&e.code==='ArrowLeft')specCycle(-1);else if(SP.on&&e.code==='ArrowRight')specCycle(1);
     if(['Space','ArrowUp','ArrowDown','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault();
   });
   addEventListener('keyup',e=>{IN.keys[e.code]=false});
@@ -2415,7 +2423,7 @@ function bindInput(){
   clk('mFull',()=>{try{const r=document.documentElement.requestFullscreen?document.documentElement.requestFullscreen():null;if(r&&r.catch)r.catch(()=>{});if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{})}catch(e){}});
   clk('howBack',()=>show('menu'));clk('setBack',()=>{if(G.running&&G.paused)show('pause');else show('menu')});
   clk('pResume',()=>setPaused(false));clk('pSet',()=>{syncSettings();show('settings')});clk('pQuit',quitToMenu);
-  clk('eRetry',startSolo);clk('eMenu',quitToMenu);clk('spPrev',()=>specCycle(-1));clk('spNext',()=>specCycle(1));clk('spLeave',endSpectate);
+  clk('eRetry',retryRun);clk('eMenu',quitToMenu);clk('spPrev',()=>specCycle(-1));clk('spNext',()=>specCycle(1));clk('spLeave',endSpectate);
   clk('lBack',()=>{net.close();show('menu')});
   const roomErr=r=>r==='unavail'?'Co-op needs a connection. Connect to the internet and try again.':'Could not open the room. Check your connection and try again.';
   clk('lHost',async()=>{
@@ -2497,7 +2505,7 @@ boot();
 <script>
 /* offline + install support (only on a normal web host such as GitHub Pages) */
 (function(){try{
-  if(!/^https?:$/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.hostname))return;
+  if(window.Capacitor||location.hostname==='localhost'||!/^https?:$/.test(location.protocol)||/claude\.ai|claudeusercontent/.test(location.hostname))return;
   if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
   let dp=null;const b=document.createElement('button');
   b.textContent='Install app';b.hidden=true;
