@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#06080a">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%2306080a%27/%3E%3Cpath d=%27M7 26V8h4v7h10V8h4v18h-4v-7H11v7z%27 fill=%27%23c2562b%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%2307090b'/%3E%3Cpath d='M30 80V36a20 20 0 0 1 40 0v44M24 80h52' fill='none' stroke='%23c2562b' stroke-width='5'/%3E%3Cellipse cx='50' cy='54' rx='13' ry='6' fill='%23e9d9b0'/%3E%3Cellipse cx='50' cy='54' rx='2.5' ry='6' fill='%23d62b1f'/%3E%3C/svg%3E">
 <title>Hollowgate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,6 +102,17 @@ input.txt{font-family:var(--fd);font-size:28px;letter-spacing:.3em;text-transfor
 .endstat{display:flex;gap:26px;margin:8px 0 14px;font-size:clamp(15px,3.6vmin,20px);letter-spacing:.08em}.endstat span{color:var(--dim);display:block;font-size:11px;letter-spacing:.2em;text-transform:uppercase}
 textarea.code{font:11px/1.2 monospace;background:rgba(0,0,0,.5);color:var(--ink);border:1px solid var(--line);width:100%;box-sizing:border-box;resize:none;-webkit-user-select:text;user-select:text}
 #lobby{overflow-y:auto;justify-content:flex-start;touch-action:pan-y}
+.mark{width:min(20vmin,104px);height:auto;margin-bottom:4px;filter:drop-shadow(0 0 10px rgba(214,43,31,.35))}.mark .pupil{transform-box:fill-box;transform-origin:center;animation:watch 6s infinite}@keyframes watch{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.12)}}
+/* UX polish */
+.scr:not([hidden]){animation:fadein .35s ease}@keyframes fadein{from{opacity:0}}
+.mb,.b,.seg button{transition:background .15s,border-color .15s,transform .1s}
+.mb:active,.b:active{transform:scale(.96)}
+button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+#sub.on{background:rgba(0,0,0,.5);padding:5px 12px;border-left:2px solid var(--rust)}
+.bar.low{animation:lowhp .7s infinite}@keyframes lowhp{50%{box-shadow:0 0 8px var(--blood);border-color:var(--blood)}}
+#mini.off{display:none}
+#mStats{margin:-6px 0 12px;letter-spacing:.12em;text-transform:uppercase}
+.endtip{margin:-4px 0 14px;max-width:min(520px,88vw)}
 </style>
 </head>
 <body>
@@ -133,8 +144,10 @@ textarea.code{font:11px/1.2 monospace;background:rgba(0,0,0,.5);color:var(--ink)
 <div class="scr solid" id="loading"><h2>Hollowgate</h2><div class="lbl" id="loadtxt">Preparing the compound</div><div id="loadbar"><b id="loadfill"></b></div></div>
 
 <div class="scr" id="menu" hidden>
+  <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 80V36a20 20 0 0 1 40 0v44M24 80h52" fill="none" stroke="#c2562b" stroke-width="3.6" stroke-linecap="butt"/><path d="M50 15v65" stroke="#c2562b" stroke-opacity=".55" stroke-width=".9"/><ellipse cx="50" cy="52" rx="12" ry="5" fill="#e9d9b0"/><ellipse class="pupil" cx="50" cy="52" rx="2.2" ry="5" fill="#d62b1f"/></svg>
   <h1>HOLLOW<br>GATE</h1>
   <div class="tag">Something lives in the compound</div>
+  <div class="note" id="mStats"></div>
   <div class="menu">
     <button class="mb" id="mSolo">Play solo</button>
     <button class="mb" id="mCoop">Co-op (Wi-Fi)</button>
@@ -159,6 +172,7 @@ textarea.code{font:11px/1.2 monospace;background:rgba(0,0,0,.5);color:var(--ink)
     <span>Look speed</span><input type="range" id="sSens" min="0.4" max="2.2" step="0.05">
     <span>Volume</span><input type="range" id="sVol" min="0" max="1" step="0.05">
     <span>Graphics</span><div class="seg" id="sQual"><button data-v="low">Low</button><button data-v="med">Medium</button><button data-v="high">High</button></div>
+    <span>Minimap</span><div class="seg" id="sMap"><button data-v="1">On</button><button data-v="0">Off</button></div>
     <span>Camera bob</span><div class="seg" id="sBob"><button data-v="1">On</button><button data-v="0">Off</button></div>
     <span>Vibration</span><div class="seg" id="sHap"><button data-v="1">On</button><button data-v="0">Off</button></div>
   </div></div>
@@ -203,6 +217,7 @@ textarea.code{font:11px/1.2 monospace;background:rgba(0,0,0,.5);color:var(--ink)
   <h1 id="endT" style="font-size:clamp(34px,13vmin,80px)">YOU DIED</h1>
   <div class="tag" id="endS">—</div>
   <div class="endstat" id="endStat"></div>
+  <div class="note endtip" id="endTip"></div>
   <div class="menu"><button class="mb" id="eRetry">Try again</button><button class="mb sec" id="eMenu">Main menu</button></div>
 </div>
 
@@ -221,7 +236,7 @@ function angDiff(a,b){let d=(b-a)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;r
 function lerpAng(a,b,t){return a+angDiff(a,b)*t}
 const store={get(k,d){try{const v=localStorage.getItem('hg_'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('hg_'+k,JSON.stringify(v))}catch(e){}}};
 const IS_TOUCH=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
-const settings=Object.assign({quality:IS_TOUCH?'med':'high',sens:1,volume:.85,bob:true,haptics:true},store.get('settings3',{}));
+const settings=Object.assign({quality:IS_TOUCH?'med':'high',sens:1,volume:.85,bob:true,haptics:true,map:true},store.get('settings3',{}));
 function saveSettings(){store.set('settings3',settings)}
 function buzz(ms){if(settings.haptics&&navigator.vibrate){try{navigator.vibrate(ms)}catch(e){}}}
 const L={x:0,z:0,yaw:0}; // audio listener (the local player's ears)
@@ -831,7 +846,7 @@ function buildNature(rnd){
     const idx=[[0,1,2],[0,2,3],[3,2,4]];for(const t of idx)for(const k of t){gp.push(q[k][0]*c,q[k][1],q[k][0]*s);const h=q[k][1];gc.push(.18+h*.4,.24+h*.42,.1+h*.2)}};
   addBlade(0);addBlade(1.05);addBlade(2.1);
   const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute(gp,3));bg.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));bg.computeVertexNormals();
-  const gm=new THREE.MeshStandardMaterial({color:0x9aa874,vertexColors:true,side:THREE.DoubleSide,roughness:1});
+  const gm=new THREE.MeshLambertMaterial({color:0x9aa874,vertexColors:true,side:THREE.DoubleSide});
   gm.onBeforeCompile=sh=>{sh.uniforms.uT=WLD.grassU;sh.vertexShader='uniform float uT;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n transformed.x+=sin(uT*1.6+instanceMatrix[3].x*.7+instanceMatrix[3].z*.4)*.12*position.y*position.y;transformed.z+=cos(uT*1.3+instanceMatrix[3].z*.6)*.08*position.y*position.y;')};
   const GN=5200,gi=new THREE.InstancedMesh(bg,gm,GN);let gcnt=0;
   for(let i=0;i<GN*3&&gcnt<GN;i++){
@@ -1059,10 +1074,10 @@ function findPath(sx,sz,gx,gz){
 
 /* ---- the Warden's brain (runs on the host / solo only) ---- */
 const PATROL=[[0,30],[-16,26],[18,26],[26,4],[10,-3],[-8,0],[0,-18],[-24,-14],[-16,-21],[18,-20],[25,-23],[22,16],[-24,16],[4,12],[-4,-24],[30,-30],[-32,-30],[-32,30],[34,24]];
-const Cr={x:18,z:-20,h:Math.PI,state:'idle',sp:0,att:0,path:null,pi:0,repT:0,wait:0,aware:0,tgt:-1,lk:null,lkT:0,losT:0,stateT:0,grace:22,pIdx:-1,searchN:0,lockI:-1,lockT:0,attHit:false,recover:0,roared:false,gx:0,gz:0,noiseCool:0,lastT:0,visMax:0,rage:0};
+const Cr={x:18,z:-20,h:Math.PI,state:'idle',sp:0,att:0,path:null,pi:0,repT:0,wait:0,aware:0,tgt:-1,lk:null,lkT:0,losT:0,stateT:0,grace:9,pIdx:-1,searchN:0,lockI:-1,lockT:0,attHit:false,recover:0,roared:false,gx:0,gz:0,noiseCool:0,lastT:0,visMax:0,rage:0};
 const Crv={C:null,stepAcc:0,vis:false};
 function crReset(){
-  Object.assign(Cr,{x:18,z:-20,h:Math.PI,state:'idle',sp:0,att:0,path:null,pi:0,repT:0,wait:0,aware:0,tgt:-1,lk:null,lkT:0,losT:0,stateT:0,grace:22,pIdx:-1,searchN:0,lockI:-1,lockT:0,attHit:false,recover:0,roared:false,rage:0});
+  Object.assign(Cr,{x:18,z:-20,h:Math.PI,state:'idle',sp:0,att:0,path:null,pi:0,repT:0,wait:0,aware:0,tgt:-1,lk:null,lkT:0,losT:0,stateT:0,grace:9,pIdx:-1,searchN:0,lockI:-1,lockT:0,attHit:false,recover:0,roared:false,rage:0});
 }
 function crSet(st,t){Cr.state=st;Cr.stateT=t||0}
 function crGo(x,z){Cr.gx=x;Cr.gz=z;Cr.path=findPath(Cr.x,Cr.z,x,z);Cr.pi=0;Cr.repT=.5}
@@ -1096,7 +1111,7 @@ function targets(){ // everyone the Warden can hunt
 function sense(t){
   if(t.hidden>=0)return 0;
   const dx=t.x-Cr.x,dz=t.z-Cr.z,d=Math.hypot(dx,dz)||.001,fx=Math.sin(Cr.h),fz=Math.cos(Cr.h);
-  const range=(15+Cr.rage*6)*(t.light?1.5:1)*(t.crouch?.6:1)*(t.sprint?1.2:1);
+  const range=(19+Cr.rage*6)*(t.light?1.45:1)*(t.crouch?.65:1)*(t.sprint?1.25:1)*(1+.1*(t.fuses||0));
   if(d>range)return 0;
   const ang=Math.acos(clamp((dx*fx+dz*fz)/d,-1,1));
   if(ang>1.1&&d>3)return 0;
@@ -1107,12 +1122,12 @@ function crDamage(t,dmg){
   if(t===me)playerHit(dmg);else net.send({t:'ev',k:'hit',to:t.id,d:dmg});
 }
 function crUpdate(dt,gt){
-  Cr.rage=G.placed*.22+(G.power?.6:0);
+  Cr.rage=G.placed*.22+(G.power?.6:0)+Math.min(.5,G.stats.t/700);
   if(Cr.grace>0){Cr.grace-=dt;Cr.sp=lerp(Cr.sp,0,.1);if(Cr.grace>0&&Cr.state==='idle')return}
   const T=targets();let best=null,bv=0;
   for(const t of T){const v=sense(t);if(v>bv){bv=v;best=t}}
   Cr.visMax=bv;
-  if(bv>0){Cr.aware=Math.min(1.2,Cr.aware+dt*(.9+bv*3.4));Cr.tgt=best.id;Cr.lk={x:best.x,z:best.z};Cr.lkT=0;Cr.losT=0}
+  if(bv>0){Cr.aware=Math.min(1.2,Cr.aware+dt*(1.1+bv*4));Cr.tgt=best.id;Cr.lk={x:best.x,z:best.z};Cr.lkT=0;Cr.losT=0}
   else{Cr.aware=Math.max(0,Cr.aware-dt*.3);Cr.losT+=dt}
   const st=Cr.state;Cr.stateT+=dt;Cr.att=st==='attack'?Cr.stateT:0;
   const tgtObj=()=>T.find(t=>t.id===Cr.tgt);
@@ -1120,7 +1135,7 @@ function crUpdate(dt,gt){
     Cr.roared=false;crSet('roar',0);Cr.recover=1.15;Cr.sp=0;
     net.ev({k:'roar',x:Cr.x,z:Cr.z});roarFx(Cr.x,Cr.z);
   }
-  const spdChase=4.05+Cr.rage*.55,spdPatrol=1.85+Cr.rage*.4;
+  const spdChase=4.5+Cr.rage*.7,spdPatrol=2.1+Cr.rage*.45;
   switch(Cr.state){
     case'roar':{ // freezes for a beat, faces target
       const tg=tgtObj();if(tg)Cr.h=lerpAng(Cr.h,Math.atan2(tg.x-Cr.x,tg.z-Cr.z),1-Math.exp(-dt*8));
@@ -1134,12 +1149,12 @@ function crUpdate(dt,gt){
       crMove(dt,spdChase,11);
       const td=Math.hypot(tg.x-Cr.x,tg.z-Cr.z);
       if(bv>0&&td<1.85&&tg.hidden<0){crSet('attack',0);Cr.attHit=false}
-      else if(Cr.losT>6||(Cr.lk&&Math.hypot(Cr.lk.x-Cr.x,Cr.z-Cr.lk.z)<1.2&&bv===0)){crSet('search',0);Cr.searchN=3;Cr.aware=.3;Cr.wait=0;Cr.lockI=-1;Cr.path=null}
+      else if(Cr.losT>9||(Cr.lk&&Math.hypot(Cr.lk.x-Cr.x,Cr.z-Cr.lk.z)<1.2&&bv===0)){crSet('search',0);Cr.searchN=3;Cr.aware=.3;Cr.wait=0;Cr.lockI=-1;Cr.path=null}
       break}
     case'attack':{
       const tg=tgtObj();Cr.sp=lerp(Cr.sp,0,.25);
       if(tg)Cr.h=lerpAng(Cr.h,Math.atan2(tg.x-Cr.x,tg.z-Cr.z),1-Math.exp(-dt*9));
-      if(!Cr.attHit&&Cr.stateT>.45){Cr.attHit=true;if(tg&&tg.hidden<0&&Math.hypot(tg.x-Cr.x,tg.z-Cr.z)<2.5)crDamage(tg,55)}
+      if(!Cr.attHit&&Cr.stateT>.45){Cr.attHit=true;if(tg&&tg.hidden<0&&Math.hypot(tg.x-Cr.x,tg.z-Cr.z)<2.5)crDamage(tg,70)}
       if(Cr.stateT>1.5){crSet('roar',0);Cr.recover=.9;Cr.aware=.9}
       break}
     case'investigate':{
@@ -1162,7 +1177,7 @@ function crUpdate(dt,gt){
       if(Cr.searchN<=0){crSet('patrol',0);Cr.pIdx=-1;Cr.wait=1.2;break}
       if(!Cr.path||Cr.pi>=Cr.path.length){
         // choose: check nearest hiding spot to last known position, else wander around it
-        let li=-1,bd=9;if(Cr.lk&&Math.random()<.65)WLD.lockers.forEach((L,i)=>{const d=Math.hypot(L.x-Cr.lk.x,L.z-Cr.lk.z);if(d<bd&&!(Cr.lastLock===i&&Cr.searchN<3)){bd=d;li=i}});
+        let li=-1,bd=9;if(Cr.lk&&Math.random()<.85)WLD.lockers.forEach((L,i)=>{const d=Math.hypot(L.x-Cr.lk.x,L.z-Cr.lk.z)-(HC[i]||0)*4;if(d<bd&&!(Cr.lastLock===i&&Cr.searchN<3)){bd=d;li=i}});
         if(li>=0&&Cr.searchN>=2){Cr.lockI=li;Cr.lastLock=li;Cr.lockT=0;crGo(WLD.lockers[li].outX,WLD.lockers[li].outZ);break}
         const b=Cr.lk||{x:Cr.x,z:Cr.z};crGo(b.x+(Math.random()-.5)*14,b.z+(Math.random()-.5)*14);Cr.searchN--;Cr.wait=1.2+Math.random()*1.5;
       }
@@ -1173,7 +1188,7 @@ function crUpdate(dt,gt){
       if(Cr.wait>0){Cr.wait-=dt;Cr.sp=lerp(Cr.sp,0,.15);Cr.h+=Math.sin(gt*.9)*dt*.5;break}
       if(!Cr.path||Cr.pi>=Cr.path.length){
         let idx=Math.floor(Math.random()*PATROL.length);
-        if(Math.random()<.4){const T2=targets();if(T2.length){const t=T2[Math.floor(Math.random()*T2.length)];let bd=1e9;PATROL.forEach((p,i)=>{const d=Math.hypot(p[0]-t.x,p[1]-t.z);if(d<bd&&i!==Cr.pIdx){bd=d;idx=i}})}}
+        if(Math.random()<.55){const T2=targets();if(T2.length){const t=T2[Math.floor(Math.random()*T2.length)];let bd=1e9;PATROL.forEach((p,i)=>{const d=Math.hypot(p[0]-t.x,p[1]-t.z);if(d<bd&&i!==Cr.pIdx){bd=d;idx=i}})}}
         if(idx===Cr.pIdx)idx=(idx+1)%PATROL.length;Cr.pIdx=idx;crGo(PATROL[idx][0],PATROL[idx][1]);
       }
       if(crMove(dt,spdPatrol,5)){Cr.wait=1+Math.random()*2.5;Cr.path=null}
@@ -1183,14 +1198,35 @@ function crUpdate(dt,gt){
 /* ============ game state, players, interaction ============ */
 const G={running:false,paused:false,t:0,seed:1,placed:0,genOn:false,genMine:false,power:false,powerT:0,over:false,stats:{t:0,hits:0,hide:0},sayT:0,noiseT:0};
 const me={id:0,name:'You',x:0,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,stamDelay:0,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,
-  fuses:0,bottles:2,bands:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,bob:0,stepD:0,kick:0,kickT:0,shake:0,thr:0,hide:{yaw:0}};
+  fuses:0,bottles:1,bands:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,bob:0,stepD:0,kick:0,kickT:0,shake:0,thr:0,hide:{yaw:0}};
 const peers={};
 /* jump scares: rare, only fired while the Warden is not hunting, never more than twice a run */
 const SC={q:null,t:null,n:0,dark:false,face:false};
 function queueScare(d){if(SC.n<2&&SC.q===null&&SC.t===null)SC.q=d}
 function scareOK(){return me.alive&&me.hidden<0&&!G.over&&G.stats.t>45&&Cr.state!=='chase'&&Cr.state!=='attack'&&Cr.state!=='roar'&&Math.hypot(me.x-Cr.x,me.z-Cr.z)>14}
 function scareEnd(){SC.t=null;SC.dark=false;SC.face=false;$('scare').classList.remove('on')}
-function scareReset(){SC.q=null;SC.n=0;scareEnd()}
+/* dread: the dark, low battery and an unseen Warden nearby wear you down; high dread brings false sounds and flickers */
+const DR={d:0,hT:12,fl:0},ST=[];
+function story(txt,d,dur){ST.push({t:d||0,txt,dur:dur||4200})}
+function storyBeat(){const L=['The generator coughs. Something upstairs stirs.','Halfway. The walls have started listening.','One more. It knows where you are now.'];if(G.placed>=1&&G.placed<=3)story(L[G.placed-1],1.2)}
+function falseSteps(){let n=0;const go=()=>{if(!G.running||G.paused||n>=5)return;const d=10-n*1.6,a=me.yaw+(Math.random()-.5)*.6;AU.step(surfaceAt(me.x,me.z),.12,me.x+Math.sin(a)*d,me.z+Math.cos(a)*d);n++;setTimeout(go,520)};go()}
+function dreadEvent(){
+  const x=me.x+(Math.random()-.5)*50,z=me.z+(Math.random()-.5)*50,r=Math.random(),bx=me.x+Math.sin(me.yaw)*1.6,bz=me.z+Math.cos(me.yaw)*1.6;
+  if(DR.d<35){if(r<.6)AU.thud(x,z,.9);else AU.noise({dur:1.2,g:.04,f:700,q:.7,type:'bandpass',x,z});return}
+  if(r<.35)falseSteps();else if(r<.6)AU.noise({dur:1.4,g:.05,f:1500,q:1.1,type:'bandpass',x:bx,z:bz});else if(r<.85)DR.fl=.55+Math.random()*.5;else{AU.thud(bx*1.0,bz*1.0,1);DR.fl=.35}
+}
+function dreadStep(dt){
+  for(let i=ST.length-1;i>=0;i--){const q=ST[i];q.t-=dt;if(q.t<=0){say(q.txt,q.dur);ST.splice(i,1)}}
+  if(!me.alive||G.over)return;
+  const near=Math.hypot(me.x-Cr.x,me.z-Cr.z),dark=!me.light||me.bat<=0;
+  const rate=(dark?3.2:0)+(near<28&&Cr.visMax===0?2+G.placed*.5:0)-(me.light&&near>=28?2.5:.5);
+  DR.d=clamp(DR.d+rate*dt,0,100);DR.fl=Math.max(0,DR.fl-dt);
+  DR.hT-=dt;if(DR.hT<=0){DR.hT=Math.max(5,16-DR.d*.1+Math.random()*8);dreadEvent()}
+}
+/* diary pages: each locker you hide in for the first time holds the next page; progress is kept between runs */
+const NOTES=['Night log, day 1: The Warden walks the east wing at dusk. Same route. Same pace.','Day 2: It stopped at my door. It did not knock. It listened for me to breathe.','Day 3: Light draws it. Darkness makes you hear things that are not there.','Day 5: Four fuses wake the generator. Then the gate opens, for one of us.','Day 6: Run only when you must. It learns which way you flee.','Day 7: Lockers are not safe. It remembers the ones you use, and checks them first.','Day 8: A thrown bottle pulls it away. Only for a moment. Only a few times.','Last page: If you are reading this, I never reached the gate. Go. Do not look back.'],SEEN=new Set(),HC=[];
+function readNote(i){if(SEEN.has(i))return;SEEN.add(i);const n=store.get('notes',0);if(n>=NOTES.length)return;store.set('notes',n+1);story('Page '+(n+1)+' of '+NOTES.length+': '+NOTES[n],1.4,6500)}
+function scareReset(){SC.q=null;SC.n=0;DR.d=0;DR.hT=14;DR.fl=0;ST.length=0;SEEN.clear();HC.length=0;scareEnd()}
 function scareStep(dt){
   if(SC.q!==null){SC.q-=dt;if(SC.q<=0){SC.q=null;if(scareOK()){SC.n++;SC.t=0;SC.dark=true;AU.thud(me.x,me.z-5,1)}}}
   if(SC.t===null)return;
@@ -1255,7 +1291,7 @@ function netEvent(m){
     case'door':setDoor(m.i,m.o,false);break;
     case'lock':setLocker(m.i,m.o,false);break;
     case'occ':WLD.lockers[m.i].occ=m.id;break;
-    case'ins':G.placed++;genVisual();AU.insert(WLD.gen.x,WLD.gen.z);objective();break;
+    case'ins':G.placed++;storyBeat();genVisual();AU.insert(WLD.gen.x,WLD.gen.z);objective();break;
     case'gen':if(!G.genOn)startGen(false);break;
     case'roar':roarFx(m.x,m.z);break;
     case'hit':if(m.to===me.id)playerHit(m.d);break;
@@ -1327,7 +1363,7 @@ function newRun(seed,plist){
   const cz=shuffle(WLD.cands.cons.slice(),rnd);cz.forEach((p,i)=>{setPickupKind(p,i<4?'battery':i<7?'bandage':'bottle');p.active=true;p.mesh.visible=true});
   genVisual();
   crReset();Cr.nx=Cr.x;Cr.nz=Cr.z;Cr.nh=Cr.h;Cr.first=undefined;
-  Object.assign(me,{x:-1.5+(me.id%4)*1.1,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,fuses:0,bottles:2,bands:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,kick:0,shake:0,grabbed:false});
+  Object.assign(me,{x:-1.5+(me.id%4)*1.1,z:36,yaw:0,pitch:0,vx:0,vz:0,sp:0,hp:100,stam:100,exh:false,bat:100,light:true,crouch:false,sprint:false,latch:false,fuses:0,bottles:1,bands:0,hidden:-1,alive:true,escaped:false,hurt:0,eye:1.62,kick:0,shake:0,grabbed:false});
   for(const k in peers)killPeer(k);
   for(const b of PR){scene.remove(b.mesh)}PR.length=0;
   $('bLight').classList.add('on');$('bRun').classList.remove('on');$('bCrouch').classList.remove('on');
@@ -1434,7 +1470,7 @@ function findInteract(){
   WLD.lockers.forEach((L,i)=>{if(L.occ>=0||L.target>0)return;cand(L.outX,L.outZ,1.7,L.dump?'Hide in dumpster':'Hide in locker',()=>enterLocker(i),-1)});
   const ge=WLD.gen;if(ge){
     const gx=ge.x,gz=ge.z+1.2;
-    if(G.placed<4&&me.fuses>0)cand(gx,gz,2.4,'Insert fuse ('+(G.placed+1)+'/4)',()=>{me.fuses--;G.placed++;genVisual();AU.insert(ge.x,ge.z);net.ev({k:'ins'});emitNoise(ge.x,ge.z,14);objective();if(G.placed>=4)say('All fuses in. Start the generator, then run for the gate.',4500)},-1);
+    if(G.placed<4&&me.fuses>0)cand(gx,gz,2.4,'Insert fuse ('+(G.placed+1)+'/4)',()=>{me.fuses--;G.placed++;storyBeat();genVisual();AU.insert(ge.x,ge.z);net.ev({k:'ins'});emitNoise(ge.x,ge.z,14);objective();if(G.placed>=4)say('All fuses in. Start the generator, then run for the gate.',4500)},-1);
     else if(G.placed>=4&&!G.genOn)cand(gx,gz,2.4,'Start generator',()=>startGen(true),-1);
   }
 }
@@ -1442,7 +1478,7 @@ function enterLocker(i){
   const L=WLD.lockers[i];
   if(Cr.state==='chase'&&Cr.tgt===me.id&&Cr.visMax>0&&net.role!=='client'){say('It sees you. You cannot hide.',2000);return}
   if(net.role==='client'&&Cr.state==='chase'&&Cr.tgt===me.id&&Cr.aware>.5){say('It sees you. You cannot hide.',2000);return}
-  me.hidden=i;L.occ=me.id;net.ev({k:'occ',i,id:me.id});setLocker(i,true,true);me.light=false;$('bLight').classList.remove('on');me.vx=me.vz=0;G.stats.hide++;
+  me.hidden=i;L.occ=me.id;net.ev({k:'occ',i,id:me.id});setLocker(i,true,true);me.light=false;$('bLight').classList.remove('on');me.vx=me.vz=0;G.stats.hide++;HC[i]=(HC[i]||0)+1;readNote(i);
   setTimeout(()=>{if(me.hidden===i)setLocker(i,false,true)},500);
 }
 function leaveLocker(){
@@ -1477,15 +1513,15 @@ function updatePlayer(dt){
   if(me.stam<=0&&!me.exh){me.exh=true;me.latch=false;$('bRun').classList.remove('on');say('Out of breath.',1500)}
   if(me.exh&&me.stam>28)me.exh=false;
   me.sprint=sprint;
-  const top=me.crouch?1.75:sprint?5.5:3.15,tx=0,fx=-Math.sin(me.yaw),fz=-Math.cos(me.yaw),rx=Math.cos(me.yaw),rz=-Math.sin(me.yaw);
+  const top=me.crouch?1.75:sprint?5.5-.22*me.fuses:3.15,tx=0,fx=-Math.sin(me.yaw),fz=-Math.cos(me.yaw),rx=Math.cos(me.yaw),rz=-Math.sin(me.yaw);
   const dvx=(fx*my+rx*mx)*top*Math.min(1,Math.hypot(mx,my)),dvz=(fz*my+rz*mx)*top*Math.min(1,Math.hypot(mx,my));
   const k=1-Math.exp(-dt*(want?9:12));me.vx+=(dvx-me.vx)*k;me.vz+=(dvz-me.vz)*k;
   me.x+=me.vx*dt;resolveCircle(me,.36);me.z+=me.vz*dt;resolveCircle(me,.36);
   me.sp=Math.hypot(me.vx,me.vz);
   // stamina
-  if(sprint&&me.sp>3){me.stam=Math.max(0,me.stam-21*dt);me.stamDelay=.8}else{me.stamDelay=Math.max(0,me.stamDelay-dt);if(me.stamDelay<=0)me.stam=Math.min(100,me.stam+(me.exh?11:19)*dt)}
+  if(sprint&&me.sp>3){me.stam=Math.max(0,me.stam-24*dt);me.stamDelay=.8}else{me.stamDelay=Math.max(0,me.stamDelay-dt);if(me.stamDelay<=0)me.stam=Math.min(100,me.stam+(me.exh?10:17)*dt)}
   // battery
-  if(me.light){me.bat=Math.max(0,me.bat-dt*.3);if(me.bat<=0){me.light=false;$('bLight').classList.remove('on');say('Flashlight battery is dead.',2500)}}
+  if(me.light){me.bat=Math.max(0,me.bat-dt*.42);if(me.bat<=0){me.light=false;$('bLight').classList.remove('on');say('Flashlight battery is dead.',2500)}}
   // eye height + bob + steps
   const eyeT=me.crouch?1.0:1.62;me.eye=lerp(me.eye,eyeT,1-Math.exp(-dt*9));
   me.bob+=me.sp*dt*(sprint?2.2:1.8);
@@ -1495,12 +1531,12 @@ function updatePlayer(dt){
     if(sprint)emitNoise(me.x,me.z,17);else if(!me.crouch)emitNoise(me.x,me.z,7);else emitNoise(me.x,me.z,2.2);
     if(sprint)buzz(8);
   }
-  if(me.escaped===false&&WLD.gate.open>.8&&me.z>45){me.escaped=true;net.ev({k:'esc'});endGame(true,'YOU ESCAPED','Through the gate and into the dark.')}
+  if(me.escaped===false&&WLD.gate.open>.8&&me.z>45){me.escaped=true;net.ev({k:'esc'});endGame(true,'YOU ESCAPED',G.stats.hits===0?'Untouched. It never knew you were there.':store.get('notes',0)>=NOTES.length?"You carry the guard's last page out. Now someone will know.":'Through the gate and into the dark.')}
 }
 /* ============ per-frame world, camera, HUD ============ */
 let vm=null,miniStatic=null,pr=1,basePR=1;
 function initGL(safe){
-  renderer=new THREE.WebGLRenderer(safe?{canvas:$('gl')}:{canvas:$('gl'),antialias:(window.devicePixelRatio||1)<1.75,powerPreference:'high-performance',alpha:false});
+  renderer=new THREE.WebGLRenderer(safe?{canvas:$('gl')}:{canvas:$('gl'),antialias:(window.devicePixelRatio||1)<1.5,powerPreference:'high-performance',alpha:false});
   renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;
   renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=THREE.PCFShadowMap;
   scene=new THREE.Scene();
@@ -1516,10 +1552,10 @@ function resize(){
 }
 function applyQuality(){perf=0;
   const q=settings.quality,dpr=window.devicePixelRatio||1;
-  basePR=q==='low'?1:q==='med'?Math.min(dpr,1.25):Math.min(dpr,1.5);pr=basePR;
+  const area=Math.max(1,innerWidth*innerHeight),cap=q==='low'?1:q==='med'?1.6:2,bud=q==='low'?5e5:q==='med'?1.2e6:2.2e6;basePR=Math.max(1,Math.min(dpr,cap,Math.sqrt(bud/area)));pr=basePR;
   if(sun){const want=q==='low'?0:q==='med'?1024:1536;sun.castShadow=want>0;if(want&&sun.shadow.mapSize.x!==want){sun.shadow.mapSize.set(want,want);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}}
   if(flashL){flashL.castShadow=q==='high'&&!IS_TOUCH;flashL.shadow.mapSize.set(512,512);flashL.shadow.bias=-.001;flashL.shadow.camera.near=.15;flashL.shadow.camera.far=32}
-  if(WLD.grass)WLD.grass.count=Math.floor(WLD.grass.userData.max*(q==='low'?.3:q==='med'?.65:1));
+  if(WLD.grass)WLD.grass.count=Math.floor(WLD.grass.userData.max*(q==='low'?.25:q==='med'?.5:1));
   if(scene&&scene.fog)scene.fog.density=q==='low'?.034:.03;
   resize();
 }
@@ -1535,7 +1571,13 @@ function drawMini(){
   const ge=WLD.gen;x.fillStyle=G.genOn?'#59d96a':'#e8a93a';x.fillRect((ge.x+40)*5-10,(ge.z+40)*5-10,20,20);
   x.fillStyle=G.power?'#59ff88':'#c24a2b';x.fillRect(197,(40+40)*5-14,6,14);x.fillRect(185,395-10,30,6);
   for(const id in peers){const p=peers[id];x.fillStyle=p.alive?'#6fb6ff':'#555';x.beginPath();x.arc((p.x+40)*5,(p.z+40)*5,9,0,TAU);x.fill()}
-  x.restore();x.fillStyle='#f1efe4';x.beginPath();x.moveTo(60,51);x.lineTo(55,64);x.lineTo(60,61);x.lineTo(65,64);x.closePath();x.fill();
+  const hunt=Cr.state==='chase'||Cr.state==='attack'||Cr.state==='roar',cd=Math.hypot(Cr.x-me.x,Cr.z-me.z),pulse=.55+.45*Math.sin(G.t*6);
+  const blip=(wx,wz,al,face)=>{const cx=(wx+40)*5,cz=(wz+40)*5;x.globalAlpha=al;x.fillStyle=x.strokeStyle='#ff3b30';x.beginPath();x.arc(cx,cz,11,0,TAU);x.fill();if(face!==undefined){x.lineWidth=5;x.beginPath();x.moveTo(cx,cz);x.lineTo(cx+Math.sin(face)*30,cz+Math.cos(face)*30);x.stroke()}x.globalAlpha=1};
+  if(hunt||cd<24)blip(Cr.x,Cr.z,hunt?pulse:.4+.2*pulse,Cr.h);
+  else if(DR.d>60&&Math.sin(G.t*1.3)>.7)blip(me.x+Math.sin(G.t*.5)*16,me.z+Math.cos(G.t*.4)*16,.35,G.t);
+  x.restore();
+  if(hunt&&cd>22){const a=me.yaw,vx=(Cr.x-me.x)*2.6,vz=(Cr.z-me.z)*2.6,sx=vx*Math.cos(a)-vz*Math.sin(a),sy=vx*Math.sin(a)+vz*Math.cos(a),m=Math.hypot(sx,sy)||1;x.save();x.translate(60+sx/m*53,60+sy/m*53);x.rotate(Math.atan2(sy,sx));x.globalAlpha=pulse;x.fillStyle='#ff3b30';x.beginPath();x.moveTo(6,0);x.lineTo(-5,-5);x.lineTo(-5,5);x.closePath();x.fill();x.restore()}
+  x.fillStyle='#f1efe4';x.beginPath();x.moveTo(60,51);x.lineTo(55,64);x.lineTo(60,61);x.lineTo(65,64);x.closePath();x.fill();
 }
 let lampT=0,hudT=0,miniT=0,grainT=0,beatT=0,breathT=0,evT=25,t12=0,lastPrompt='',frames=0,fsum=0,slow=0,fast=0,crStep=0,heardAt=0;
 function worldAnim(dt,t){
@@ -1572,7 +1614,7 @@ function simulate(dt){
   if(net.role!=='solo'){t12+=dt;if(t12>=.085){t12=0;
     net.send({t:'p',x:+me.x.toFixed(2),z:+me.z.toFixed(2),y:+me.yaw.toFixed(2),sp:+me.sp.toFixed(2),c:+me.crouch,s:+me.sprint,l:+(me.light&&me.hidden<0),h:me.hidden,a:+me.alive,e:+me.escaped,n:(net.players[net.pid]||{}).name});
     if(net.role==='host')net.send({t:'s',cr:[+Cr.x.toFixed(2),+Cr.z.toFixed(2),+Cr.h.toFixed(2),Cr.state,+Cr.sp.toFixed(2),+Cr.att.toFixed(2),+Cr.aware.toFixed(2),Cr.tgt],pl:G.placed,go:+G.genOn})}}
-  scareStep(dt);findInteract();
+  scareStep(dt);dreadStep(dt);findInteract();
   // threat for audio / visuals
   const dC=Math.hypot(me.x-Cr.x,me.z-Cr.z);let thr=Math.pow(clamp(1-dC/24,0,1),1.3);
   if((Cr.state==='chase'||Cr.state==='attack'||Cr.state==='roar')&&Cr.tgt===me.id)thr=Math.max(thr,.7+.3*clamp(1-dC/12,0,1));
@@ -1598,7 +1640,7 @@ function updateCamera(dt){
   camera.position.set(me.x+rx*bx,eye+by-camDip,me.z+rz*bx);camera.rotation.set(me.pitch+sy-camKnock*.14,me.yaw+sx,roll+camKnock*.07*Math.sin(t*34));
   const fov=me.sprint&&me.sp>3?79:72+me.thr*2;if(Math.abs(camera.fov-fov)>.05){camera.fov=lerp(camera.fov,fov,1-Math.exp(-dt*6));camera.updateProjectionMatrix()}
   // flashlight
-  let li=me.light&&me.alive&&!SC.dark?1:0;if(li){if(me.bat<15)li*=Math.sin(t*50)*Math.sin(t*19)>.5-me.bat/60?.2:1;
+  let li=me.light&&me.alive&&!SC.dark&&!(DR.fl>0&&Math.sin(G.t*55)>-.3)?1:0;if(li){if(me.bat<15)li*=Math.sin(t*50)*Math.sin(t*19)>.5-me.bat/60?.2:1;
     const prox=clamp(1-Math.hypot(me.x-Cr.x,me.z-Cr.z)/16,0,1);if(prox>0&&Cr.state!=='idle'&&Math.sin(t*61)*Math.sin(t*23)>.92-prox*.55)li*=.12}
   flashL.intensity=3.2*li;flashL.position.set(.14,-.12,0);
   // viewmodel
@@ -1615,6 +1657,7 @@ function updateCamera(dt){
 }
 const _hc={};function ss(id,p,v){const k=id+p;if(_hc[k]===v)return;_hc[k]=v;$(id).style[p]=v}
 function hud(dt){
+  $('mini').classList.toggle('off',!settings.map);$('hpb').parentNode.classList.toggle('low',me.hp<35&&me.alive);
   ss('hpb','transform','scaleX('+(me.hp/100).toFixed(2)+')');ss('hpb','background',me.hp<35?'#ff4040':'');
   ss('stb','transform','scaleX('+clamp(me.stam/100,0,1).toFixed(2)+')');ss('btb','transform','scaleX('+clamp(me.bat/100,0,1).toFixed(2)+')');
   const txt=IT?IT.label:'';if(txt!==lastPrompt){lastPrompt=txt;const p=$('prompt');p.textContent=txt;p.classList.toggle('on',!!txt)}$('bInt').classList.toggle('ready',!!IT);
@@ -1622,7 +1665,7 @@ function hud(dt){
   const hb=$('bHeal');hb.hidden=!(me.bands>0&&me.hp<100);$('cHeal').textContent=me.bands;
   let aw=0;if(me.alive&&Cr.tgt===me.id)aw=clamp(Cr.aware,0,1);if((Cr.state==='chase'||Cr.state==='attack')&&Cr.tgt===me.id)aw=1;
   ss('eye','opacity',aw>.05?'1':'0');ss('eyearc','strokeDashoffset',(100.5*(1-aw)).toFixed(1));
-  ss('vig','opacity',clamp(.78+me.thr*.22+(me.hp<40?.15:0),0,1).toFixed(2));
+  ss('vig','opacity',clamp(.78+me.thr*.22+DR.d*.0012+(me.hp<40?.15:0),0,1).toFixed(2));
   ss('hurt','opacity',me.alive?clamp(me.hurt*.95+(me.hp<30?.18+Math.sin(G.t*6)*.06:0),0,1).toFixed(2):'1');
 }
 let grainX=null,grainIm=null;
@@ -1635,13 +1678,16 @@ const FOG_A=new THREE.Color(0x0a1017),FOG_B=new THREE.Color(0x24090c),FOG_T=new 
 let camDip=0,camKnock=0,shN=0,vmY=null,vmP=0,vmSX=0,vmSY=0;
 function renderFrame(dt){
   const C=Crv.C;if(C){C.near=Math.hypot(Cr.x-camera.position.x,Cr.z-camera.position.z)<28;C.root.position.set(Cr.x,0,Cr.z);C.root.rotation.y=Cr.h;C.pose(dt,Cr.state,Cr.sp,G.t,Cr.state==='attack'?Math.min(1,Cr.att/1.0):0)}
-  if(shN++%(flashL.castShadow?2:4)===0)renderer.shadowMap.needsUpdate=true;
+  if(shN++%(flashL.castShadow?2:(me.sp>.4?4:12))===0)renderer.shadowMap.needsUpdate=true;
   renderer.render(scene,camera);
 }
 /* ============ menus, flow ============ */
 const SCR=['loading','menu','how','settings','lobby','pause','end'];
 let prevScr='menu';
-function show(id){for(const s of SCR)$(s).hidden=s!==id;if(id)prevScr=id==='settings'?prevScr:id}
+const TIPS=['Tip: a thrown bottle pulls the Warden away. Throw it far from where you want to be.','Tip: crouch in the dark to stay quiet. Running and a lit flashlight carry the furthest.','Tip: carrying fuses makes you easier to notice. Make short trips.','Tip: the Warden remembers the lockers you use. Vary your hiding places.','Tip: a flickering light and footsteps behind you may be nothing. Keep your head.'];
+function tipFor(w){return /Dragged/.test(w)?TIPS[3]:/caught/.test(w)?TIPS[(Math.random()*3|0)]:TIPS[Math.random()*TIPS.length|0]}
+function menuStats(){const n=store.get('notes',0),b=store.get('best',0),e=store.get('wins',0);$('mStats').textContent='Diary '+n+'/'+NOTES.length+(e?'  \u00b7  Escapes '+e:'')+(b?'  \u00b7  Best '+fmt(b):'')}
+function show(id){if(id==='menu')menuStats();for(const s of SCR)$(s).hidden=s!==id;if(id)prevScr=id==='settings'?prevScr:id}
 function hideAll(){for(const s of SCR)$(s).hidden=true}
 function menuUpdate(dt){
   const t=G.t;camera.position.set(Math.sin(t*.06)*3.2,1.75+Math.sin(t*.5)*.03,37.5);camera.rotation.set(-.02,Math.sin(t*.06)*.03,0);camera.fov=70;
@@ -1659,7 +1705,7 @@ function startRun(seed,plist){
   try{history.pushState({hg:1},'')}catch(e){}
   AU.init();AU.resume();hideAll();$('hud').hidden=false;$('btns').hidden=false;$('end').hidden=true;
   G.running=true;G.paused=false;G.seed=seed;me.id=net.pid;newRun(seed,plist);
-  say('Find 4 fuses and bring them to the generator shed.',5200);
+  say('Find 4 fuses and bring them to the generator shed.',5200);story('Hollowgate Asylum. The night shift never came home.',7);story('Stay quiet. It hears everything.',17,3800);
   setTimeout(()=>{if(G.running&&!G.over)say('Stay quiet. Crouch to sneak. Hide when it sees you.',4200)},6500);
   try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}
   $('eRetry').hidden=net.role!=='solo';
@@ -1677,7 +1723,7 @@ function quitToMenu(){
 function fmt(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function endGame(win,title,sub){
   if(G.over)return;G.over=true;G.paused=false;IN.mx=IN.my=0;
-  $('endT').textContent=title;$('endT').style.color=win?'#9fd58a':'#d9382f';$('endS').textContent=sub;
+  $('endT').textContent=title;$('endT').style.color=win?'#9fd58a':'#d9382f';let nb=false;if(win){store.set('wins',store.get('wins',0)+1);const b=store.get('best',0);if(!b||G.stats.t<b){store.set('best',Math.floor(G.stats.t));nb=b>0}}$('endS').textContent=sub+(nb?' New best time.':'');$('endTip').textContent=win?'':tipFor(sub);
   $('endStat').innerHTML='<div><span>Time</span>'+fmt(G.stats.t)+'</div><div><span>Fuses placed</span>'+G.placed+'/4</div><div><span>Hits taken</span>'+G.stats.hits+'</div><div><span>Times hidden</span>'+G.stats.hide+'</div>';
   $('hud').hidden=true;$('btns').hidden=true;$('eRetry').hidden=net.role!=='solo';show('end');
   if(win){AU.stinger();$('hurt').style.opacity=0}
@@ -1750,12 +1796,13 @@ function bindInput(){
   $('sSens').addEventListener('input',e=>{settings.sens=+e.target.value;saveSettings()});
   $('sVol').addEventListener('input',e=>{settings.volume=+e.target.value;AU.setVol(settings.volume);saveSettings()});
   const seg=(id,key,conv)=>$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;settings[key]=conv(b.dataset.v);saveSettings();syncSettings();if(key==='quality')applyQuality();AU.init();AU.click()});
-  seg('sQual','quality',v=>v);seg('sBob','bob',v=>v==='1');seg('sHap','haptics',v=>v==='1');
+  seg('sQual','quality',v=>v);seg('sBob','bob',v=>v==='1');seg('sHap','haptics',v=>v==='1');seg('sMap','map',v=>v==='1');
 }
 function syncSettings(){
   $('sSens').value=settings.sens;$('sVol').value=settings.volume;
   for(const b of $('sQual').children)b.classList.toggle('on',b.dataset.v===settings.quality);
   for(const b of $('sBob').children)b.classList.toggle('on',(b.dataset.v==='1')===settings.bob);
+  for(const b of $('sMap').children)b.classList.toggle('on',(b.dataset.v==='1')===settings.map);
   for(const b of $('sHap').children)b.classList.toggle('on',(b.dataset.v==='1')===settings.haptics);
 }
 /* ============ main loop ============ */
@@ -1775,7 +1822,7 @@ function loop(ts){
   }catch(err){console.error(err);if(!loop.err){loop.err=1;const e=$('sub');e.textContent='Error: '+err.message;e.classList.add('on')}}
   // adaptive resolution
   frames++;fsum+=dt;if(frames>=45){const avg=fsum/frames*1000;frames=0;fsum=0;
-    if(avg>21){slow++;fast=0;if(slow>=2){if(pr>basePR*.55){pr=Math.max(basePR*.55,pr*.88);resize()}else if(perf<2){perf++;if(perf===1){flashL.castShadow=false}else{sun.castShadow=false}renderer.shadowMap.needsUpdate=true}slow=0}}
+    if(avg>21){slow++;fast=0;if(slow>=2){if(pr>basePR*.8){pr=Math.max(basePR*.8,pr*.92);resize()}else if(perf<2){perf++;if(perf===1){flashL.castShadow=false}else{sun.castShadow=false}renderer.shadowMap.needsUpdate=true}slow=0}}
     else if(avg<15.5){fast++;slow=0;if(fast>=6&&pr<basePR){pr=Math.min(basePR,pr*1.06);resize();fast=0}}else{slow=0;fast=0}}
 }
 function boot(){
