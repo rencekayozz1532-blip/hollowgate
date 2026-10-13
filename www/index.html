@@ -360,6 +360,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.152.2/three.min.js"></script>
+<script>window.THREE||document.write('<script src="three.min.js"><\/script>')</script>
 <script>
 'use strict';
 /* ============ utilities ============ */
@@ -1777,7 +1778,38 @@ const IN={mx:0,my:0,run:false,keys:{},lookX:0,lookY:0};
 let IT=null; // current interaction target
 const PR=[]; // thrown bottles
 
-/* ---- net: co-op rooms joined by a 4 letter code, carried by the artifact "room" capability ---- */
+/* co-op transport for builds without Claude's hosted rooms (APK / downloaded file): PeerJS over WebRTC. The 4 letter code is the hub's peer id; the hub relays between players. Needs a connection only to find each other. */
+function loadPeerJS(){return new Promise((ok,no)=>{if(window.Peer)return ok();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=()=>window.Peer?ok():no('lib');s.onerror=()=>no('lib');document.head.appendChild(s)})}
+async function peerRoomJoin(code){
+  await loadPeerJS();
+  const hubId='hgate-'+code;
+  const open=id=>new Promise((ok,no)=>{const p=id?new Peer(id):new Peer();const t=setTimeout(()=>{try{p.destroy()}catch(e){}no('timeout')},9000);p.on('open',()=>{clearTimeout(t);ok(p)});p.on('error',e=>{clearTimeout(t);no(e&&e.type||'err')})});
+  let peer,hub=false;
+  try{peer=await open(hubId);hub=true}catch(e){if(e!=='unavailable-id')throw e;peer=await open()}
+  const evH=[],pH=[],conns={},pres={},mine={};let up=null,gone=false;const P=Promise.resolve();
+  const fire=m=>{for(const f of evH.slice())try{f({isMe:false,data:m})}catch(e){}};
+  const firePeers=c=>{for(const f of pH.slice())try{f(Object.assign({joined:[],updated:[],left:[]},c))}catch(e){}};
+  const sendAll=(m,except)=>{for(const id in conns)if(id!==except&&conns[id].open)try{conns[id].send(m)}catch(e){}};
+  const handle=(from,m)=>{
+    if(!m||typeof m!=='object')return;
+    if(m.k==='e'){fire(m.d);if(hub)sendAll(m,from)}
+    else if(m.k==='p'){const id=hub?from:m.id;pres[id]=Object.assign(pres[id]||{},m.pr);firePeers({updated:[{peer:id,presence:pres[id],isMe:false}]});if(hub)sendAll({k:'p',id:from,pr:m.pr},from)}
+    else if(m.k==='x'){const id=hub?from:m.id;delete pres[id];firePeers({left:[{peer:id,isMe:false}]});if(hub)sendAll({k:'x',id},from)}
+  };
+  const wire=c=>{conns[c.peer]=c;c.on('data',d=>handle(c.peer,d));
+    c.on('close',()=>{delete conns[c.peer];if(hub){delete pres[c.peer];firePeers({left:[{peer:c.peer,isMe:false}]});sendAll({k:'x',id:c.peer},c.peer)}else if(!gone)firePeers({left:[{peer:hubId,isMe:false}]})})};
+  if(hub){peer.on('connection',c=>{wire(c);c.on('open',()=>{try{c.send({k:'p',id:peer.id,pr:mine});for(const id in pres)c.send({k:'p',id,pr:pres[id]})}catch(e){}})})}
+  else await new Promise((ok,no)=>{const c=peer.connect(hubId,{reliable:true});const t=setTimeout(()=>no('fail'),8000);c.on('open',()=>{clearTimeout(t);wire(c);up=c;ok()});c.on('error',()=>{clearTimeout(t);no('fail')})});
+  const un=(a,f)=>()=>{const i=a.indexOf(f);if(i>=0)a.splice(i,1)};
+  return{
+    on(e,f){if(e!=='g')return()=>{};evH.push(f);return un(evH,f)},
+    onPeers(f){pH.push(f);return un(pH,f)},
+    emit(e,d){const m={k:'e',d};if(hub)sendAll(m);else if(up&&up.open)try{up.send(m)}catch(e2){}return P},
+    presence(o){Object.assign(mine,o);const m={k:'p',id:peer.id,pr:o};if(hub)sendAll(m);else if(up&&up.open)try{up.send(m)}catch(e2){}return P},
+    leave(){gone=true;try{if(up&&up.open)up.send({k:'x',id:peer.id})}catch(e2){}setTimeout(()=>{try{peer.destroy()}catch(e2){}},60);return P}
+  };
+}
+/* ---- net: co-op rooms joined by a 4 letter code, carried by the artifact "room" capability (or PeerJS above) ---- */
 const net={role:'solo',room:'',pid:0,players:{},k:0,rm:null,offs:[],pp:{},hk:{},
   send(o){const r=this.rm;if(!r)return;o.f=this.pid;
     try{o=JSON.parse(JSON.stringify(o));let q;
@@ -1787,8 +1819,9 @@ const net={role:'solo',room:'',pid:0,players:{},k:0,rm:null,offs:[],pp:{},hk:{},
   async open(code){
     this.close();
     let R=null;try{R=window.claude&&window.claude.use?await window.claude.use('room'):null}catch(e){}
-    if(!R)return'unavail';
-    let rm;try{rm=await R.join('hg-'+code)}catch(e){return'fail'}
+    let rm;
+    if(R){try{rm=await R.join('hg-'+code)}catch(e){return'fail'}}
+    else{try{rm=await peerRoomJoin(code)}catch(e){return navigator.onLine===false?'unavail':'fail'}}
     this.rm=rm;this.room=code;
     this.offs=[
       rm.on('g',m=>{if(m.isMe||!m.data||typeof m.data!=='object')return;this.recv(m.data)}),
@@ -2381,7 +2414,7 @@ function bindInput(){
   clk('pResume',()=>setPaused(false));clk('pSet',()=>{syncSettings();show('settings')});clk('pQuit',quitToMenu);
   clk('eRetry',startSolo);clk('eMenu',quitToMenu);clk('spPrev',()=>specCycle(-1));clk('spNext',()=>specCycle(1));clk('spLeave',endSpectate);
   clk('lBack',()=>{net.close();show('menu')});clk('lBack2',()=>{net.close();show('menu')});
-  const roomErr=r=>r==='unavail'?'Co-op works from the shared artifact page while signed in to Claude.':'Could not open the room. Try again.';
+  const roomErr=r=>r==='unavail'?'Co-op needs a connection. Connect to the internet and try again.':'Could not open the room. Check your connection and try again.';
   clk('lHost',async()=>{
     $('lMsg').textContent='Creating room…';
     const ab='ABCDEFGHJKLMNPQRSTUVWXYZ';let code='';for(let i=0;i<4;i++)code+=ab[Math.floor(Math.random()*ab.length)];
@@ -2435,7 +2468,7 @@ function loop(ts){
     else if(avg<15.2){fast++;slow=0;if(fast>=10&&pr<basePR&&ts>(loop.noUp||0)){pr=Math.min(basePR,pr*1.05);resize();fast=0}}else{slow=0;fast=0}}
 }
 function boot(){
-  if(typeof THREE==='undefined'){$('loadtxt').textContent='Could not load the 3D engine. Run build.sh once, or connect to the internet once, then reload; after that the game works offline.';return}
+  if(typeof THREE==='undefined'){$('loadtxt').textContent='Could not load the 3D engine. Connect to the internet once and reload, or save three.min.js (r152) in the same folder as this file for fully offline play.';return}
   try{initGL()}catch(e){
     try{renderer=null;const c=$('gl');const nc=c.cloneNode(false);c.parentNode.replaceChild(nc,c);initGL(true)}
     catch(e2){$('loadtxt').textContent='Graphics could not start: '+(e2&&e2.message||e&&e.message||'unknown error');return}
