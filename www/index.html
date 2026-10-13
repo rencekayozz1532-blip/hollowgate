@@ -70,6 +70,9 @@ body{padding:0!important}
 .scr{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:center;padding:var(--st) var(--sr) var(--sb) var(--sl);box-sizing:border-box;background:linear-gradient(90deg,rgba(4,6,7,.92),rgba(4,6,7,.55) 62%,rgba(4,6,7,.15))}
 .scr.solid{background:rgba(4,6,7,.93)}
 .scr[hidden]{display:none}
+/* short preview panes: let menu screens scroll instead of clipping, and tighten controls */
+.scr{overflow-y:auto;justify-content:safe center;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+@media (max-height:340px){:root{--u:46px}.mb.pri{min-height:38px;padding:6px 14px}h1{font-size:clamp(30px,11vmin,60px)}}
 h1{font-family:var(--fd);font-weight:400;font-size:clamp(38px,15vmin,92px);line-height:.9;margin:0;letter-spacing:.02em;color:#e9ece4;text-shadow:0 0 28px rgba(194,86,43,.35);animation:flick 7s infinite}
 @keyframes flick{0%,92%,100%{opacity:1}93%{opacity:.55}94%{opacity:1}96%{opacity:.7}97%{opacity:1}}
 h2{font-family:var(--fd);font-weight:400;font-size:clamp(24px,8vmin,44px);margin:0 0 8px;letter-spacing:.03em}
@@ -368,6 +371,56 @@ button[hidden]{display:none!important}
 #chatPanel.kb #chatKeys{display:flex;flex-direction:column;gap:4px}
 @media (max-height:420px){#chatQuick{grid-template-columns:repeat(4,1fr)}#chatQuick button{height:32px}}
 @media (max-height:420px){#minihint{top:calc(var(--st) + 69px + clamp(72px,20vmin,104px))}#bigmap{top:calc(var(--st) + 58px)}.bml{display:none}}
+
+/* ---- v13 cleaner UI pass: one glass style, fewer borders, icon-only keys ---- */
+:root{--glass:rgba(8,12,13,.56);--glass-b:rgba(221,227,218,.12)}
+.scr{scrollbar-width:none}.scr::-webkit-scrollbar{display:none}
+/* HUD */
+#obj{background:var(--glass);border:1px solid var(--glass-b);border-radius:12px;padding:8px 14px 9px;max-width:40vw}
+#obj .lbl{font-size:9px;letter-spacing:.3em;opacity:.65}
+#objtxt{font-size:clamp(13px,3vmin,16px);letter-spacing:.02em;margin-top:3px}
+#fuses{margin-top:8px}#fuses i{width:16px;height:4px}
+#mini{background:rgba(4,8,8,.45);border:1px solid var(--glass-b);box-shadow:none;opacity:.85}
+#vitals{gap:8px}
+.bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1)}.bar b{border-radius:2px}
+.bar::before{font-size:8px;opacity:.7}
+#pauseb{background:var(--glass);border:1px solid var(--glass-b)}
+#prompt{background:var(--glass);border:1px solid rgba(232,169,58,.35);border-radius:999px}
+#sub,#sub.on{background:var(--glass);border:1px solid var(--glass-b);border-radius:12px}
+/* touch keys: round, icon-only, USE keeps its label */
+#act .b{background:var(--glass);border:1px solid var(--glass-b);border-radius:50%;box-shadow:none}
+#act .b svg{width:42%;height:42%}
+#act .b:not(#bInt) i{display:none}
+#act #bInt{border-color:rgba(232,169,58,.5)}
+#act .b em{border-color:#0a0e0f}
+/* menus and panels */
+h2{letter-spacing:.04em}
+.scr.solid h2{display:block;border-bottom:0;padding-bottom:0;margin-bottom:14px;min-width:0}
+#menu{background:linear-gradient(90deg,rgba(4,6,7,.9),rgba(4,6,7,.5) 55%,rgba(4,6,7,.1))}
+.tag{color:var(--dim);letter-spacing:.2em}
+#mStats span{border:0;background:rgba(255,255,255,.06);border-radius:999px;padding:3px 10px}
+.foot{opacity:.55}
+.mb{background:rgba(255,255,255,.05);border:1px solid var(--glass-b);border-left:1px solid var(--glass-b);border-radius:10px;letter-spacing:.12em}
+.mb.sec{background:transparent}
+.mb:hover,.mb:active{background:rgba(194,86,43,.22)}
+.mb.pri{background:var(--rust);border-color:var(--rust);box-shadow:none}
+.mb.pri:hover,.mb.pri:active{background:#d96a3a}
+.card{background:rgba(10,14,15,.72);border:1px solid var(--glass-b);border-left:1px solid var(--glass-b);border-radius:14px;padding:14px 18px}
+.seg{gap:3px;padding:3px;background:rgba(0,0,0,.35);border:1px solid var(--glass-b);border-radius:10px}
+.seg button{border:0;border-radius:8px;margin:0;background:transparent}
+.seg button.on{background:var(--rust);color:#fff}
+.endstat>div{border-radius:10px}
+
+/* ---- v14 cleaner locker view: lighter slats, soft frame, less clutter while hiding ---- */
+#slats{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(0,0,0,.5) 100%),repeating-linear-gradient(0deg,rgba(0,0,0,.6) 0 2px,rgba(0,0,0,0) 2px 26px);box-shadow:inset 0 0 12vmin rgba(0,0,0,.8);transition:opacity .45s ease}
+#obj,#cross{transition:opacity .4s ease}
+#slats[style*="opacity: 1"]~#hud #obj,#slats[style*="opacity: 1"]~#hud #cross{opacity:0}
+/* CCTV tracker: compact glass card, no legend */
+#bigmap{width:min(60vmin,320px);background:rgba(8,12,13,.78);border:1px solid var(--glass-b);border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.5);overflow:hidden}
+.bmh{padding:6px 6px 6px 12px}.bmh .lbl{color:var(--dim)}
+#bmX{border:0;border-radius:50%;background:rgba(255,255,255,.08)}
+#bm{border-top:0}
+.bml{display:none}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 </head>
@@ -1730,7 +1783,7 @@ function mimicStep(dt,t){
 
 function huntFx(on){if(on){AU.stinger();AU.roar(undefined,undefined,.9);me.shake=Math.max(me.shake,.6);buzz(120);say('THE HUNT. It knows where you are. Keep moving, or hide.',5500)}else say('The hunt is over. It is still out there.',3500)}
 function huntStart(){HUNT.on=true;HUNT.t=0;HUNT.hT=0;HUNT.rt=0;net.ev({k:'hunt',o:1});huntFx(true)}
-function huntEnd(){HUNT.on=false;HUNT.done=true;net.ev({k:'hunt',o:0});huntFx(false);if(net.role!=='client'&&Cr.state!=='chase'&&Cr.state!=='attack'&&Cr.state!=='roar'){crSet('search',0);Cr.searchN=2;Cr.wait=0;Cr.path=null}}
+function huntEnd(){HUNT.on=false;HUNT.done=true;net.ev({k:'hunt',o:0});huntFx(false);if(net.role!=='client'&&Cr.state!=='down'&&Cr.state!=='chase'&&Cr.state!=='attack'&&Cr.state!=='roar'){crSet('search',0);Cr.searchN=2;Cr.wait=0;Cr.path=null}}
 function crSpawn(){ // random patrol point far from where the player starts
   const px=0,pz=36,far=PATROL.filter(p=>Math.hypot(p[0]-px,p[1]-pz)>=45),pool=far.length?far:PATROL.slice().sort((a,b)=>Math.hypot(b[0]-px,b[1]-pz)-Math.hypot(a[0]-px,a[1]-pz)).slice(0,4);
   const s=pool[Math.floor(Math.random()*pool.length)];return{x:s[0],z:s[1],h:Math.random()*TAU};
@@ -1742,7 +1795,7 @@ function crReset(){
 function crSet(st,t){Cr.state=st;Cr.stateT=t||0}
 function crGo(x,z){Cr.gx=x;Cr.gz=z;Cr.path=findPath(Cr.x,Cr.z,x,z);Cr.pi=0;Cr.repT=.5}
 function crHeard(x,z,r){
-  if(Cr.state==='chase'||Cr.state==='attack'||Cr.state==='roar'||net.role==='client')return;
+  if(Cr.state==='down'||Cr.state==='chase'||Cr.state==='attack'||Cr.state==='roar'||net.role==='client')return;
   const d=Math.hypot(x-Cr.x,z-Cr.z);let eff=r;if(d>6&&!losClear(Cr.x,Cr.z,x,z,1.5))eff*=.6;
   if(d>eff||Cr.grace>0&&r<30)return;
   Cr.lk={x,z};crSet('investigate',0);crGo(x,z);Cr.wait=0;
@@ -2576,7 +2629,9 @@ function updateCamera(dt){
   if(!me.alive){me.deadT=(me.deadT||0)+dt;eye=lerp(me.eye,.25,clamp(me.deadT*2,0,1));roll=clamp(me.deadT*1.5,0,1)*.7}else me.deadT=0;
   camDip*=Math.exp(-dt*10);camKnock*=Math.exp(-dt*5);
   camera.position.set(me.x+rx*bx,eye+by-camDip,me.z+rz*bx);camera.rotation.set(me.pitch+sy-camKnock*.14,me.yaw+sx,roll+(KS.t!==null?KS.rl:0)+camKnock*.07*Math.sin(t*34)+DR.d*.0005*Math.sin(t*.8));
-  if(SP.on){const p=peers[SP.id];if(p){specEye=lerp(specEye,p.hidden>=0?1.5:p.crouch?1.1:1.62,1-Math.exp(-dt*9));camera.position.set(p.x,specEye,p.z);camera.rotation.set(p.pit||0,p.yaw,0)}}
+  if(SP.on){const p=peers[SP.id];if(p){specEye=lerp(specEye,p.hidden>=0?1.5:p.crouch?1.1:1.62,1-Math.exp(-dt*9));const fx=-Math.sin(p.yaw)*.14,fz=-Math.cos(p.yaw)*.14;camera.position.set(p.x+fx,specEye,p.z+fz);camera.rotation.set(p.pit||0,p.yaw,0);
+    /* never draw the watched player's body (or anyone standing inside the lens): the view was sitting inside their jacket and hood */
+    for(const k in peers){const q=peers[k];if(String(k)===String(SP.id)||Math.hypot(q.x-camera.position.x,q.z-camera.position.z)<1.1)q.av.root.visible=false}}}
   const _sp=SP.on&&peers[SP.id],fov=((_sp?(_sp.sprint&&_sp.sp>3):(me.sprint&&me.sp>3))?79:72+me.thr*2)+(KS.t!==null?KS.pf:0);if(Math.abs(camera.fov-fov)>.05){camera.fov=lerp(camera.fov,fov,1-Math.exp(-dt*6));camera.updateProjectionMatrix()}
   // flashlight
   let li=(SP.on?SP.lit:me.light&&me.alive)&&!SC.dark&&!(DR.fl>0&&Math.sin(G.t*55)>-.3)?1:0;if(li){if(me.bat<15)li*=Math.sin(t*50)*Math.sin(t*19)>.5-me.bat/60?.2:1;
